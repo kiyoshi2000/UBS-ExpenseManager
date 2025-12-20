@@ -10,8 +10,10 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.Map;
 
+/**
+ * Represents a structured error response thrown at {@link com.ubs.expensemanager.exception.GlobalExceptionHandler}
+ */
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Schema(description = "Error response structure")

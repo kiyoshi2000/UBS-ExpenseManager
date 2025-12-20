@@ -7,6 +7,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * In-memory repository for mock users, used for testing and initial development.
+ *
+ * <p><b>Deprecated:</b> provides basic lookup by email and predefines a static list of users.
+ * This repository is temporary and will be removed when a real persistence
+ * layer is implemented.</p>
+ */
 public class UserMockRepository {
     @Getter
     @Setter

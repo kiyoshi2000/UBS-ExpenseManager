@@ -20,6 +20,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller responsible for authentication endpoints.
+ *
+ * <p>Exposes operations for user login and related authentication flows.
+ * All requests are validated and return structured responses, including errors
+ * with detailed messages when input is invalid or credentials are incorrect.</p>
+ */
 @Slf4j
 @AllArgsConstructor
 @RestController
@@ -28,6 +35,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthService authService;
 
+    /**
+     * Authenticates a user using email and password.
+     *
+     * <p>Logs login attempts and returns a {@link LoginResponse} if authentication
+     * is successful. Validation errors or invalid credentials are returned as
+     * {@link ErrorResponse}.</p>
+     *
+     * @param request the login request containing email and password; must be valid
+     * @return a {@link ResponseEntity} containing {@link LoginResponse} on success
+     * @throws jakarta.validation.ValidationException if input validation fails
+     * @throws com.ubs.expensemanager.exception.InvalidCredentialsException if incorrect login/psw
+     */
     @Operation(
             summary = "User Login",
             description = "Authenticate the user with email and password"

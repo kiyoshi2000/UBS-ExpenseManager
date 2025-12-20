@@ -14,10 +14,25 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Centralized exception handler for the application
+ *
+ * <p>Handles authentication failures, validation errors and uncaught
+ * exceptions, returning {@link ErrorResponse} objects with appropriate
+ * HTTP Status code.</p>
+ *
+ * <p>All Exceptions are logged for debugging and auditing purposes.</p>
+ */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Handles auth failures caused by invalid credentials (bad email/password)
+     * @param ex the thrown Exception
+     * @param request the HTTP request that triggered the exception
+     * @return a {@link ErrorResponse} with status 401
+     */
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleInvalidCredentials(
             InvalidCredentialsException ex,
@@ -32,6 +47,12 @@ public class GlobalExceptionHandler {
         );
     }
 
+    /**
+     * Handles uncaught exceptions
+     * @param ex the thrown Exception
+     * @param request the HTTP request that triggered the exception
+     * @return a {@link ErrorResponse} with status 500
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex,
@@ -46,6 +67,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    /**
+     * Handles validation errors on method arguments
+     *
+     * <p>Returns a structured ErrorResponse including field-specific messages
+     * for all validation failures.</p>
+     *
+     * @param ex the thrown Exception
+     * @param request the HTTP request that triggered the exception
+     * @return a {@link ErrorResponse} with status 400
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleArgumentNotValidException(
             MethodArgumentNotValidException ex,
@@ -69,6 +100,15 @@ public class GlobalExceptionHandler {
         );
     }
 
+    /**
+     * Builds the {@link ErrorResponse} and logs the error
+     * @param status HTTP status code
+     * @param error short error message description
+     * @param message detailed error message
+     * @param path the endpoint path that triggered the exception
+     * @param fieldErrors the list of invalid fields (nullable)
+     * @return {@link ResponseEntity} containing the ErrorResponse
+     */
     private ResponseEntity<ErrorResponse> buildErrorResponse(
             int status,
             String error,

@@ -17,6 +17,14 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Unit tests for {@link AuthController}.
+ *
+ * <p>Tests authentication endpoints including login validation and error handling.</p>
+ *
+ * <p>Uses {@link MockMvc} to simulate HTTP requests and verify responses.</p>
+ * and {@link AuthService} is mocked to isolate controller behaviour
+ */
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(AuthController.class)
 public class AuthControllerTest {
@@ -31,11 +39,17 @@ public class AuthControllerTest {
 
     private static final String LOGIN_URL = "/api/auth/login";
 
-    // ---------- 401 ----------
+    /**
+     * Verifies that an invalid login attempt returns HTTP 401 Unauthorized.
+     *
+     * @throws Exception if the request execution fails
+     */
     @Test
     void shouldReturn401WhenCredentialsAreInvalid() throws Exception {
-        LoginRequest request =
-                new LoginRequest("inexistent_user_email@email.com", "password");
+        LoginRequest request = LoginRequest.builder()
+                .email("inexistent_user@x.x")
+                .password("password")
+                .build();
 
         when(authService.authenticate(any(LoginRequest.class)))
                 .thenThrow(new InvalidCredentialsException("Invalid Credentials"));
@@ -47,10 +61,18 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.status").value(401));
     }
 
-    // ---------- 400 ----------
+    /**
+     * Verifies that a request with invalid fields returns HTTP 400 Bad Request
+     * with detailed validation error messages (invalid email and empty password).
+     *
+     * @throws Exception if the request execution fails
+     */
     @Test
     void shouldReturn400WhenRequestIsInvalid() throws Exception {
-        LoginRequest request = new LoginRequest("invalid_email_address", "");
+        LoginRequest request = LoginRequest.builder()
+                .email("invalid_email_address")
+                .password("")
+                .build();
 
         mockMvc.perform(post(LOGIN_URL)
                         .contentType(MediaType.APPLICATION_JSON)
