@@ -1,10 +1,7 @@
+import { LoginPage } from './pages/Login';
+
 function App() {
-  return (
-    <div>
-      <h1>Expense Manager</h1>
-      <p>Skeleton frontend running.</p>
-    </div>
-  )
+  return <LoginPage />;
 }
 
-export default App
+export default App;
