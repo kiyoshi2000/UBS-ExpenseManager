@@ -1,5 +1,6 @@
 package com.ubs.expensemanager.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -33,6 +34,8 @@ public class SecurityConfig {
             "/sessions/**"
     };
 
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
 
     /**
      * Applies security rules to all HTTP requests.
@@ -63,8 +66,7 @@ public class SecurityConfig {
     /**
      * Enables CORS for local frontend applications during development.
      *
-     * <p>Two local ports (5173 and 5174) are allowed to run the main frontend
-     * and a local test frontend simultaneously.</p>
+     * <p> Get from ambient variable {@code CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174}</p>
      */
     @Bean
     public WebMvcConfigurer corsConfigurer() {
@@ -72,10 +74,7 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins(
-                                "http://localhost:5173",
-                                "http://localhost:5174"
-                        )
+                        .allowedOrigins(allowedOrigins)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

@@ -3,6 +3,7 @@ package com.ubs.expensemanager.service;
 import com.ubs.expensemanager.dto.request.LoginRequest;
 import com.ubs.expensemanager.dto.response.LoginResponse;
 import com.ubs.expensemanager.exception.InvalidCredentialsException;
+import com.ubs.expensemanager.model.User;
 import com.ubs.expensemanager.repository.UserMockRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,7 +39,7 @@ public class AuthService {
      */
     public LoginResponse authenticate(LoginRequest request) {
 
-        UserMockRepository.UserMock user = UserMockRepository.findByEmail(request.getEmail())
+        User user = UserMockRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid Credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
