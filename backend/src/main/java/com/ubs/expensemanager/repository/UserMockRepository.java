@@ -17,7 +17,7 @@ import java.util.Optional;
  */
 public class UserMockRepository {
     public static final List<User> USERS = List.of(
-            new User("finance@ubs.com", new BCryptPasswordEncoder().encode("123"), UserRole.FINANCE)
+            new User("finance@ubs.com", new BCryptPasswordEncoder().encode("123456"), UserRole.FINANCE)
     );
 
     public static Optional<User> findByEmail(String email) {

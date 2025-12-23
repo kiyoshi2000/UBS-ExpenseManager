@@ -3,6 +3,7 @@ package com.ubs.expensemanager.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 /**
@@ -19,12 +20,13 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 public class LoginRequest {
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = "email is required")
     @Email
     @Schema(description = "User email", example = "finance@ubs.com")
     private String email;
 
-    @Schema(description = "User password", example = "123")
-    @NotBlank(message = "Password is required")
+    @Schema(description = "User password", example = "123456")
+    @NotBlank(message = "password is required")
+    @Size(min = 6, message = "password must be at least 6 characters")
     private String password;
 }
