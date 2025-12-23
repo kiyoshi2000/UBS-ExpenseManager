@@ -15,6 +15,9 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 public class LoginResponse {
-    @Schema(description = "User email", example = "finance@ubs.com")
-    private String email;
+    @Schema(description = "User token")
+    private String token;
+
+    @Schema(description = "User info")
+    private UserResponse user;
 }

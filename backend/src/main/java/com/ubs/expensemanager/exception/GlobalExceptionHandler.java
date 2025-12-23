@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,20 +29,42 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     /**
-     * Handles auth failures caused by invalid credentials (bad email/password)
+     * Handles user registration conflicts when email already exists
      * @param ex the thrown Exception
      * @param request the HTTP request that triggered the exception
-     * @return a {@link ErrorResponse} with status 401
+     * @return a {@link ErrorResponse} with status 409 (Conflict)
      */
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidCredentials(
-            InvalidCredentialsException ex,
+    @ExceptionHandler(UserExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUserExists(
+            UserExistsException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                HttpServletResponse.SC_CONFLICT, // 409
+                "Conflict",
+                ex.getMessage(),
+                request.getServletPath(),
+                null
+        );
+    }
+
+    /**
+     * Handles authentication failures due to invalid credentials.
+     *
+     * <p>
+     * Returns a 401 Unauthorized response with a generic message to avoid
+     * exposing which part of the credentials was incorrect.
+     * </p>
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(
+            BadCredentialsException ex,
             HttpServletRequest request
     ) {
         return buildErrorResponse(
                 HttpServletResponse.SC_UNAUTHORIZED,
-                "Unauthorized",
-                ex.getMessage(),
+                "Invalid credentials",
+                "Email or password is incorrect",
                 request.getServletPath(),
                 null
         );

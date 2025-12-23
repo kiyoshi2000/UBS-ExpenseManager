@@ -2,7 +2,6 @@ package com.ubs.expensemanager.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ubs.expensemanager.dto.request.LoginRequest;
-import com.ubs.expensemanager.exception.InvalidCredentialsException;
 import com.ubs.expensemanager.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -51,8 +51,8 @@ public class AuthControllerTest {
                 .password("password")
                 .build();
 
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenThrow(new InvalidCredentialsException("Invalid Credentials"));
+        when(authService.login(any(LoginRequest.class)))
+                .thenThrow(new BadCredentialsException("Invalid Credentials"));
 
         mockMvc.perform(post(LOGIN_URL)
                         .contentType(MediaType.APPLICATION_JSON)

@@ -1,6 +1,7 @@
 package com.ubs.expensemanager.controller;
 
 import com.ubs.expensemanager.dto.request.LoginRequest;
+import com.ubs.expensemanager.dto.request.UserCreateRequest;
 import com.ubs.expensemanager.dto.response.ErrorResponse;
 import com.ubs.expensemanager.dto.response.LoginResponse;
 import com.ubs.expensemanager.service.AuthService;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.net.URI;
 
 /**
  * REST controller responsible for authentication endpoints.
@@ -45,7 +48,6 @@ public class AuthController {
      * @param request the login request containing email and password; must be valid
      * @return a {@link ResponseEntity} containing {@link LoginResponse} on success
      * @throws jakarta.validation.ValidationException if input validation fails
-     * @throws com.ubs.expensemanager.exception.InvalidCredentialsException if incorrect login/psw
      */
     @Operation(
             summary = "User Login",
@@ -102,10 +104,85 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request
     ) {
         log.info("Login attempt for email={}", request.getEmail());
-        LoginResponse res = authService.authenticate(request);
+        LoginResponse response = authService.login(request);
         log.info("Login success for email={}", request.getEmail());
+        return ResponseEntity.ok(response);
+    }
 
-        return ResponseEntity.ok(res);
+    /**
+     * Handles user registration requests.
+     *
+     * <p>Receives a UserCreateRequest, validates it, and delegates to AuthService
+     * to create a new user. Returns a LoginResponse containing the generated JWT
+     * and user info. Check swag for further info. </p>
+     *
+     * @param request the user creation request payload
+     * @return ResponseEntity with status 201 and LoginResponse body
+     */
+    @Operation(
+            summary = "User Registration",
+            description = "Register a new user in the system"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "User created successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "Validation Error",
+                                    value = """
+                                {
+                                  "timestamp": "2025-12-23T15:05:29.519982678Z",
+                                  "status": 400,
+                                  "error": "Validation error",
+                                  "message": "Validation failed for one or more fields",
+                                  "path": "/api/auth/register",
+                                  "errors": {
+                                    "email": "must be a well-formed email address"
+                                  }
+                                }
+                                """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "User already exists",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(
+                                    name = "User Already Exists",
+                                    value = """
+                                {
+                                  "timestamp": "2025-12-23T15:04:06.098997078Z",
+                                  "status": 409,
+                                  "error": "Conflict",
+                                  "message": "The email 'finance@ubs.com' is already registered",
+                                  "path": "/api/auth/register"
+                                }
+                                """
+                            )
+                    )
+            )
+    })
+    @PostMapping("/register")
+    public ResponseEntity<LoginResponse> register(
+            @Valid @RequestBody UserCreateRequest request
+    ) {
+        log.info("Registration attempt for email={}", request.getEmail());
+        LoginResponse response = authService.register(request);
+        log.info("Registration success for email={}", request.getEmail());
+
+        return ResponseEntity
+                .created(URI.create("/api/users/" + response.getUser().getId()))
+                .body(response);
     }
 }
 
