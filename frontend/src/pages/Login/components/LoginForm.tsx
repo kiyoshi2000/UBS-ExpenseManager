@@ -50,8 +50,11 @@ export const LoginForm = () => {
       const { data: result } = await api.post(
         "/api/auth/login",
         data,
-        // { withCredentials: true }
       );
+
+      localStorage.setItem("jwt_token", result.token);
+      localStorage.setItem("user_role", result.user.role);
+
       navigate("/dashboard");
     } catch (error: any) {
       const message =
