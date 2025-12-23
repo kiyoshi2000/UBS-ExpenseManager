@@ -46,7 +46,7 @@ describe('LoginForm', () => {
     await user.type(emailInput, 'emailinvalido');
     await user.tab();
 
-    expect(screen.getByText(/formato de email inválido/i)).toBeInTheDocument();
+    expect(screen.getByText(/invalid email format/i)).toBeInTheDocument();
   });
 
   it('mostra erro de senha ao perder foco com senha vazia', async () => {
@@ -57,6 +57,17 @@ describe('LoginForm', () => {
     await user.click(passwordInput);
     await user.tab();
 
-    expect(screen.getByText(/senha é obrigatória/i)).toBeInTheDocument();
+    expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+  });
+
+  it('mostra erro de senha com menos de 6 caracteres', async () => {
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    const passwordInput = screen.getByLabelText(/password/i);
+    await user.type(passwordInput, '12345'); // Only 5 characters
+    await user.tab();
+
+    expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument();
   });
 });
