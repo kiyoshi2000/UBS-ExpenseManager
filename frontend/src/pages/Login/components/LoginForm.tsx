@@ -6,6 +6,9 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useNavigate } from 'react-router-dom';
+import { api } from "@/services/api";
+
 import {
   Card,
   CardContent,
@@ -28,6 +31,7 @@ const loginFormSchema = z.object({
 type LoginFormData = z.infer<typeof loginFormSchema>;
 
 export const LoginForm = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -41,9 +45,21 @@ export const LoginForm = () => {
     },
   });
 
-  const onSubmit = (data: LoginFormData) => {
-    console.log('Form data:', data);
-    // Future: authenticate user
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      const { data: result } = await api.post(
+        "/api/auth/login",
+        data,
+        // { withCredentials: true }
+      );
+      navigate("/dashboard");
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ??
+          "Unexpected error while logging in. Try again later!";
+
+      alert(message);
+    }
   };
 
   return (

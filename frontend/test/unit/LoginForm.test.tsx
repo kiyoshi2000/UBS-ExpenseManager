@@ -1,7 +1,11 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LoginForm } from '../../src/pages/Login/components/LoginForm';
+import { api } from '@/services/api';
+import MockAdapter from 'axios-mock-adapter';
+import { BrowserRouter } from 'react-router-dom';
+
 
 describe('LoginForm', () => {
   it('renderiza os campos de email e senha', () => {
@@ -71,5 +75,73 @@ describe('LoginForm', () => {
     expect(
       screen.getByText(/password must be at least 6 characters/i)
     ).toBeInTheDocument();
+  });
+});
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+const renderLoginForm = () => {
+  return render(
+    <BrowserRouter>
+      <LoginForm />
+    </BrowserRouter>
+  );
+};
+
+describe('LoginForm - HTTP Status Codes', () => {
+  let mock: MockAdapter;
+  const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+  beforeEach(() => {
+    mock = new MockAdapter(api);
+    mockNavigate.mockClear();
+    alertMock.mockClear();
+  });
+
+  afterEach(() => {
+    mock.restore();
+  });
+
+  it('deve redirecionar para dashboard quando login é bem-sucedido (200)', async () => {
+    mock.onPost('/api/auth/login').reply(200, {
+      message: 'Login successful',
+    });
+
+    const user = userEvent.setup();
+    renderLoginForm();
+
+    await user.type(screen.getByLabelText(/email/i), 'user@ubs.com');
+    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.click(screen.getByRole('button', { name: /login/i }));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
+    expect(alertMock).not.toHaveBeenCalled();
+  });
+
+  it('deve mostrar alert quando há qualquer erro', async () => {
+    mock.onPost('/api/auth/login').reply(401, {
+      message: 'Invalid credentials',
+    });
+
+    const user = userEvent.setup();
+    renderLoginForm();
+
+    await user.type(screen.getByLabelText(/email/i), 'user@ubs.com');
+    await user.type(screen.getByLabelText(/password/i), 'wrongpassword');
+    await user.click(screen.getByRole('button', { name: /login/i }));
+
+    await waitFor(() => {
+      expect(alertMock).toHaveBeenCalled();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

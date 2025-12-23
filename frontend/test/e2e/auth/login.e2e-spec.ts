@@ -167,3 +167,76 @@ test.describe('Login Page', () => {
     await expect(page.getByText(/invalid email format/i)).not.toBeVisible();
   });
 });
+
+test.describe('Login API Integration', () => {
+  test('should redirect to dashboard on successful login (200)', async ({ page }) => {
+    // Mock successful API response
+    await page.route('**/api/auth/login', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: 'Login successful',
+          token: 'fake-jwt-token',
+        }),
+      });
+    });
+
+    await page.goto('/', { waitUntil: 'networkidle' });
+
+    const emailInput = page.getByLabel(/email/i);
+    const passwordInput = page.getByLabel(/password/i);
+    const loginButton = page.getByRole('button', { name: /login/i });
+
+    await emailInput.fill('user@ubs.com');
+    await passwordInput.fill('password123');
+
+    // Wait for button to be enabled
+    await page.waitForTimeout(500);
+
+    await loginButton.click();
+
+    // Should redirect to dashboard
+    await expect(page).toHaveURL(/\/dashboard/);
+  });
+
+  test('should show alert on login error', async ({ page }) => {
+    // Mock error API response
+    await page.route('**/api/auth/login', async (route) => {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: 'Invalid credentials',
+        }),
+      });
+    });
+
+    // Listen for dialog (alert)
+    page.on('dialog', async (dialog) => {
+      expect(dialog.type()).toBe('alert');
+      expect(dialog.message()).toBe('Invalid credentials');
+      await dialog.accept();
+    });
+
+    await page.goto('/', { waitUntil: 'networkidle' });
+
+    const emailInput = page.getByLabel(/email/i);
+    const passwordInput = page.getByLabel(/password/i);
+    const loginButton = page.getByRole('button', { name: /login/i });
+
+    await emailInput.fill('user@ubs.com');
+    await passwordInput.fill('wrongpassword');
+
+    // Wait for button to be enabled
+    await page.waitForTimeout(500);
+
+    await loginButton.click();
+
+    // Wait for alert to appear
+    await page.waitForTimeout(500);
+
+    // Should stay on login page
+    await expect(page).toHaveURL('/');
+  });
+});
