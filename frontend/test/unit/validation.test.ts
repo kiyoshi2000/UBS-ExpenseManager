@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateEmail, validatePassword } from './validation';
+import { validateEmail, validatePassword } from '../../src/utils/validation';
 
 describe('validateEmail', () => {
   it('retorna erro quando email está vazio', () => {

@@ -15,7 +15,10 @@ import {
 } from '@/components/ui/card';
 
 const loginFormSchema = z.object({
-  email: z.email().min(1, 'Email is required'),
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Invalid email format'),
   password: z
     .string()
     .min(1, 'Password is required')
@@ -66,7 +69,7 @@ export const LoginForm = () => {
               type='email'
               {...register('email')}
               placeholder='seu.email@ubs.com'
-              aria-invalid={touchedFields.email && !!errors.email}
+              aria-invalid={touchedFields.email && !!errors.email ? 'true' : 'false'}
             />
             {touchedFields.email && errors.email && (
               <p className='text-sm text-destructive'>{errors.email.message}</p>
@@ -80,7 +83,7 @@ export const LoginForm = () => {
               type='password'
               {...register('password')}
               placeholder='••••••'
-              aria-invalid={touchedFields.password && !!errors.password}
+              aria-invalid={touchedFields.password && !!errors.password ? 'true' : 'false'}
             />
             {touchedFields.password && errors.password && (
               <p className='text-sm text-destructive'>

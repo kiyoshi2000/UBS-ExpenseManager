@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { LoginForm } from './LoginForm';
+import { LoginForm } from '../../src/pages/Login/components/LoginForm';
 
 describe('LoginForm', () => {
   it('renderiza os campos de email e senha', () => {
@@ -68,6 +68,8 @@ describe('LoginForm', () => {
     await user.type(passwordInput, '12345'); // Only 5 characters
     await user.tab();
 
-    expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/password must be at least 6 characters/i)
+    ).toBeInTheDocument();
   });
 });
