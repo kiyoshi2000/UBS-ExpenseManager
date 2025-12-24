@@ -12,6 +12,8 @@ services:
       - "5432:5432"
 
   backend:
+    environment:
+      DB_SERVER: db
     build: ./backend
     container_name: expense-backend
     depends_on:
