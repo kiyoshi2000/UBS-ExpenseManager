@@ -1,10 +1,33 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { PublicRoute } from '@/components/PublicRoute';
+import { LoginPage } from './pages/Login';
+import { DashboardPage } from './pages/Dashboard';
+
 function App() {
   return (
-    <div>
-      <h1>Expense Manager</h1>
-      <p>Skeleton frontend running.</p>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute /*allowedRoles={['ROLE_FINANCE']*/>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
