@@ -69,35 +69,6 @@ test.describe('Login Page', () => {
     await expect(loginButton).toBeEnabled();
   });
 
-  test('should submit form with valid credentials', async ({ page }) => {
-    // Listen for console.log to verify form submission
-    const consoleLogs: string[] = [];
-    page.on('console', (msg) => {
-      consoleLogs.push(msg.text());
-    });
-
-    await page.goto('/', { waitUntil: 'networkidle' });
-
-    const emailInput = page.getByLabel(/email/i);
-    const passwordInput = page.getByLabel(/password/i);
-    const loginButton = page.getByRole('button', { name: /login/i });
-
-    await emailInput.fill('user@ubs.com');
-    await passwordInput.fill('Test123456');
-
-    // Wait for validation
-    await page.waitForTimeout(500);
-
-    await loginButton.click();
-
-    // Wait a bit for form submission
-    await page.waitForTimeout(500);
-
-    // Verify console.log was called (form submits and logs data)
-    const hasFormData = consoleLogs.some((log) => log.includes('Form data'));
-    expect(hasFormData).toBe(true);
-  });
-
   test('should be keyboard navigable', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
 
@@ -168,7 +139,7 @@ test.describe('Login Page', () => {
   });
 });
 
-test.describe('Login API Integration', () => {
+test.describe('should redirect to dashboard on successful login', () => {
   test('should redirect to dashboard on successful login (200)', async ({ page }) => {
     // Mock successful API response
     await page.route('**/api/auth/login', async (route) => {
@@ -178,6 +149,11 @@ test.describe('Login API Integration', () => {
         body: JSON.stringify({
           message: 'Login successful',
           token: 'fake-jwt-token',
+          user: {
+            id: 1,
+            email: 'johndoe@email.com',
+            role: 'ROLE_EMPLOYEE',
+          }
         }),
       });
     });
