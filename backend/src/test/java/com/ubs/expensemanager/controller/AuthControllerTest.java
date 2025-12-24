@@ -2,7 +2,9 @@ package com.ubs.expensemanager.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ubs.expensemanager.dto.request.LoginRequest;
+import com.ubs.expensemanager.security.JwtUtil;
 import com.ubs.expensemanager.service.AuthService;
+import com.ubs.expensemanager.service.UserDetailsServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,6 +38,12 @@ public class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private JwtUtil jwtUtil;
+
+    @MockBean
+    private UserDetailsServiceImpl userDetailsService;
 
     private static final String LOGIN_URL = "/api/auth/login";
 
