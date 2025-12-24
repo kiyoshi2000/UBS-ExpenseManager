@@ -6,7 +6,7 @@ spring:
     name: expense-manager
 
   datasource:
-    url: jdbc:postgresql://${DB_SERVER:db}:${DB_PORT:5432}/${POSTGRES_DB:expense_manager}
+    url: jdbc:postgresql://${DB_SERVER:localhost}:${DB_PORT:5432}/${POSTGRES_DB:expense_manager}
     username: ${POSTGRES_USER:expense}
     password: ${POSTGRES_PASSWORD:expense}
   jpa:
