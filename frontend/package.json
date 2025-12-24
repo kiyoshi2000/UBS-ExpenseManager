@@ -1,11 +1,12 @@
 {
+  "type": "module",
   "name": "expense-manager-frontend",
   "private": true,
   "version": "0.0.1",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "lint": "echo \"Lint not configured yet\"",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
