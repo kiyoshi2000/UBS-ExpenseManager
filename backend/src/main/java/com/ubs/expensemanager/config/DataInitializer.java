@@ -33,28 +33,50 @@ public class DataInitializer {
      */
     @PostConstruct
     public void init() {
-        List<User> users = List.of(
+        List<User> usersWithoutManager = List.of(
                 User.builder()
                         .email("finance@ubs.com")
                         .password(passwordEncoder.encode("123456"))
                         .role(UserRole.FINANCE)
+                        .name("Finance User")
                         .build(),
                 User.builder()
                         .email("manager@ubs.com")
                         .password(passwordEncoder.encode("123456"))
                         .role(UserRole.MANAGER)
-                        .build(),
-                User.builder()
-                        .email("employee@ubs.com")
-                        .password(passwordEncoder.encode("123456"))
-                        .role(UserRole.EMPLOYEE)
+                        .name("Manager User")
                         .build()
         );
 
         // Save each user if it does not already exist
-        for (User user : users) {
+        for (User user : usersWithoutManager) {
             userRepository.findByEmail(user.getEmail())
                     .orElseGet(() -> userRepository.save(user));
+        }
+
+        User manager = userRepository.findByEmail("manager@ubs.com")
+                .orElseThrow(() -> new IllegalStateException("Manager should have been created"));
+
+        List<User> employees = List.of(
+                User.builder()
+                        .name("Employee One")
+                        .email("employee@ubs.com")
+                        .password(passwordEncoder.encode("123456"))
+                        .role(UserRole.EMPLOYEE)
+                        .manager(manager)
+                        .build(),
+                User.builder()
+                        .name("Employee Two")
+                        .email("employee2@ubs.com")
+                        .password(passwordEncoder.encode("123456"))
+                        .role(UserRole.EMPLOYEE)
+                        .manager(manager)
+                        .build()
+        );
+
+        for (User employee : employees) {
+            userRepository.findByEmail(employee.getEmail())
+                    .orElseGet(() -> userRepository.save(employee));
         }
     }
 }

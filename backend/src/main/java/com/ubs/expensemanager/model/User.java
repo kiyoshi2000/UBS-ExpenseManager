@@ -40,6 +40,21 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private UserRole role;
 
+    @Column(nullable = false)
+    private String name;
+
+//    @ManyToOne
+//    @JoinColumn(name = "department_id")
+//    private Department department;
+
+    @ManyToOne
+    @JoinColumn(name = "manager_id")
+    private User manager;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
+
     @Override
     public String getUsername() {
         return email;
@@ -48,5 +63,10 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of((GrantedAuthority) role::asAuthority);
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return active;
     }
 }
