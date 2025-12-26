@@ -27,8 +27,6 @@ test.describe('Login Page', () => {
     await emailInput.fill('invalid-email');
     await emailInput.blur();
 
-    await page.waitForTimeout(500);
-
     const errorMessage = page.getByText(/invalid email format/i);
     await expect(errorMessage).toBeVisible();
   });
@@ -40,9 +38,6 @@ test.describe('Login Page', () => {
 
     await passwordInput.fill('12345');
     await passwordInput.blur();
-
-    // Wait a bit for validation
-    await page.waitForTimeout(500);
 
     const errorMessage = page.getByText(/password must be at least 6 characters/i);
     await expect(errorMessage).toBeVisible();
@@ -62,10 +57,6 @@ test.describe('Login Page', () => {
     await emailInput.fill('user@ubs.com');
     await passwordInput.fill('Test123456');
 
-    // Wait for validation
-    await page.waitForTimeout(500);
-
-    // Should be enabled now
     await expect(loginButton).toBeEnabled();
   });
 
@@ -86,14 +77,10 @@ test.describe('Login Page', () => {
     // Type password
     await page.keyboard.type('Test123456');
 
-    // Wait for validation
-    await page.waitForTimeout(500);
-
     // Tab to login button
     await page.keyboard.press('Tab');
     await expect(page.getByRole('button', { name: /login/i })).toBeFocused();
 
-    // Button should be enabled
     await expect(page.getByRole('button', { name: /login/i })).toBeEnabled();
   });
 
@@ -109,10 +96,6 @@ test.describe('Login Page', () => {
     await emailInput.fill('invalid');
     await emailInput.blur();
 
-    // Wait for validation
-    await page.waitForTimeout(500);
-
-    // Should be marked as invalid
     await expect(emailInput).toHaveAttribute('aria-invalid', 'true');
   });
 
@@ -124,15 +107,12 @@ test.describe('Login Page', () => {
     // Create error
     await emailInput.fill('invalid');
     await emailInput.blur();
-    await page.waitForTimeout(500);
 
-    // Error should be visible
     await expect(page.getByText(/invalid email format/i)).toBeVisible();
 
     // Fix the error
     await emailInput.clear();
     await emailInput.fill('user@ubs.com');
-    await page.waitForTimeout(500);
 
     await expect(page.getByText(/invalid email format/i)).toBeHidden();
   });
@@ -166,12 +146,8 @@ test.describe('should redirect to dashboard on successful login', () => {
     await emailInput.fill('user@ubs.com');
     await passwordInput.fill('password123');
 
-    // Wait for button to be enabled
-    await page.waitForTimeout(500);
-
     await loginButton.click();
 
-    // Should redirect to dashboard
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
@@ -203,15 +179,9 @@ test.describe('should redirect to dashboard on successful login', () => {
     await emailInput.fill('user@ubs.com');
     await passwordInput.fill('wrongpassword');
 
-    // Wait for button to be enabled
-    await page.waitForTimeout(500);
-
     await loginButton.click();
 
-    // Wait for alert to appear
-    await page.waitForTimeout(500);
-
-    // Should stay on login page
     await expect(page).toHaveURL('/');
   });
 });
+
