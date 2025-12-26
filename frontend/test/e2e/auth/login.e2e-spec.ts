@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('Login Page', () => {
   test('should render login page correctly', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     await expect(page.getByText('Login to your account', { exact: true })).toBeVisible();
     await expect(page.getByText(/enter your email below to login/i)).toBeVisible();
@@ -12,7 +12,7 @@ test.describe('Login Page', () => {
   });
 
   test('should have login button disabled initially', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     const loginButton = page.getByRole('button', { name: /login/i });
 
@@ -20,7 +20,7 @@ test.describe('Login Page', () => {
   });
 
   test('should show error when email is invalid', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     const emailInput = page.getByLabel(/email/i);
 
@@ -34,7 +34,7 @@ test.describe('Login Page', () => {
   });
 
   test('should show error when password is too short', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     const passwordInput = page.getByLabel(/password/i);
 
@@ -49,7 +49,7 @@ test.describe('Login Page', () => {
   });
 
   test('should enable login button with valid credentials', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     const emailInput = page.getByLabel(/email/i);
     const passwordInput = page.getByLabel(/password/i);
@@ -70,7 +70,7 @@ test.describe('Login Page', () => {
   });
 
   test('should be keyboard navigable', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     // Tab to email field
     await page.keyboard.press('Tab');
@@ -98,7 +98,7 @@ test.describe('Login Page', () => {
   });
 
   test('should have proper ARIA attributes', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     const emailInput = page.getByLabel(/email/i);
 
@@ -117,7 +117,7 @@ test.describe('Login Page', () => {
   });
 
   test('should clear error when input becomes valid', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     const emailInput = page.getByLabel(/email/i);
 
@@ -134,8 +134,7 @@ test.describe('Login Page', () => {
     await emailInput.fill('user@ubs.com');
     await page.waitForTimeout(500);
 
-    // Error should be gone
-    await expect(page.getByText(/invalid email format/i)).not.toBeVisible();
+    await expect(page.getByText(/invalid email format/i)).toBeHidden();
   });
 });
 
@@ -158,7 +157,7 @@ test.describe('should redirect to dashboard on successful login', () => {
       });
     });
 
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     const emailInput = page.getByLabel(/email/i);
     const passwordInput = page.getByLabel(/password/i);
@@ -195,7 +194,7 @@ test.describe('should redirect to dashboard on successful login', () => {
       await dialog.accept();
     });
 
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/');
 
     const emailInput = page.getByLabel(/email/i);
     const passwordInput = page.getByLabel(/password/i);

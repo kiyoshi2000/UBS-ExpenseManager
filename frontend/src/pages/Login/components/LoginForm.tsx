@@ -1,5 +1,3 @@
-// src/pages/Login/components/LoginForm.tsx
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
-import { api } from "@/services/api";
+import { api } from '@/services/api';
 
 import {
   Card,
@@ -18,10 +16,7 @@ import {
 } from '@/components/ui/card';
 
 const loginFormSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Invalid email format'),
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
   password: z
     .string()
     .min(1, 'Password is required')
@@ -29,6 +24,16 @@ const loginFormSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginFormSchema>;
+
+interface LoginResponse {
+  message: string;
+  token: string;
+  user: {
+    id: number;
+    email: string;
+    role: string;
+  };
+}
 
 export const LoginForm = () => {
   const navigate = useNavigate();
@@ -47,19 +52,24 @@ export const LoginForm = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const { data: result } = await api.post(
-        "/api/auth/login",
-        data,
+      const { data: result } = await api.post<LoginResponse>(
+        '/api/auth/login',
+        data
       );
 
-      localStorage.setItem("jwt_token", result.token);
-      localStorage.setItem("user_role", result.user.role);
+      localStorage.setItem('jwt_token', result.token);
+      localStorage.setItem('user_role', result.user.role);
 
-      navigate("/dashboard");
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message ??
-          "Unexpected error while logging in. Try again later!";
+      void navigate('/dashboard');
+    } catch (error) {
+      let message = 'Unexpected error while logging in. Try again later!';
+
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as {
+          response?: { data?: { message?: string } };
+        };
+        message = axiosError.response?.data?.message ?? message;
+      }
 
       alert(message);
     }
@@ -88,7 +98,9 @@ export const LoginForm = () => {
               type='email'
               {...register('email')}
               placeholder='seu.email@ubs.com'
-              aria-invalid={touchedFields.email && !!errors.email ? 'true' : 'false'}
+              aria-invalid={
+                touchedFields.email && !!errors.email ? 'true' : 'false'
+              }
             />
             {touchedFields.email && errors.email && (
               <p className='text-sm text-destructive'>{errors.email.message}</p>
@@ -102,7 +114,9 @@ export const LoginForm = () => {
               type='password'
               {...register('password')}
               placeholder='••••••'
-              aria-invalid={touchedFields.password && !!errors.password ? 'true' : 'false'}
+              aria-invalid={
+                touchedFields.password && !!errors.password ? 'true' : 'false'
+              }
             />
             {touchedFields.password && errors.password && (
               <p className='text-sm text-destructive'>

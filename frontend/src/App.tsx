@@ -9,7 +9,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route
-          path="/"
+          path='/'
           element={
             <PublicRoute>
               <LoginPage />
@@ -17,14 +17,13 @@ function App() {
           }
         />
         <Route
-          path="/dashboard"
+          path='/dashboard'
           element={
             <ProtectedRoute /*allowedRoles={['ROLE_FINANCE']*/>
               <DashboardPage />
             </ProtectedRoute>
           }
         />
-
       </Routes>
     </BrowserRouter>
   );
