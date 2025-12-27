@@ -1,13 +1,15 @@
 // src/pages/Login/components/LoginForm.tsx
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useNavigate } from 'react-router-dom';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/services/api";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import {
   Card,
@@ -15,22 +17,21 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
 const loginFormSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Invalid email format'),
+  email: z.string().min(1, "Email is required").email("Invalid email format"),
   password: z
     .string()
-    .min(1, 'Password is required')
-    .min(6, 'Password must be at least 6 characters'),
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
 });
 
 type LoginFormData = z.infer<typeof loginFormSchema>;
 
 export const LoginForm = () => {
+  const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
   const {
     register,
@@ -38,19 +39,16 @@ export const LoginForm = () => {
     formState: { errors, touchedFields, isValid },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginFormSchema),
-    mode: 'onTouched',
+    mode: "onTouched",
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const { data: result } = await api.post(
-        "/api/auth/login",
-        data,
-      );
+      const { data: result } = await api.post("/api/auth/login", data);
 
       localStorage.setItem("jwt_token", result.token);
       localStorage.setItem("user_role", result.user.role);
@@ -59,19 +57,19 @@ export const LoginForm = () => {
     } catch (error: any) {
       const message =
         error.response?.data?.message ??
-          "Unexpected error while logging in. Try again later!";
+        "Unexpected error while logging in. Try again later!";
 
       alert(message);
     }
   };
 
   return (
-    <Card className='w-full max-w-sm'>
-      <CardHeader className='text-center'>
-        <CardTitle className='text-xl text-left'>
+    <Card className="w-full max-w-sm">
+      <CardHeader className="text-center">
+        <CardTitle className="text-xl text-left">
           Login to your account
         </CardTitle>
-        <CardDescription className='text-left'>
+        <CardDescription className="text-left">
           Enter your email below to login to your account
         </CardDescription>
       </CardHeader>
@@ -79,42 +77,55 @@ export const LoginForm = () => {
         <form
           onSubmit={handleSubmit(onSubmit)}
           noValidate
-          className='space-y-6'
+          className="space-y-6"
         >
-          <div className='space-y-2'>
-            <Label htmlFor='email'>Email</Label>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
             <Input
-              id='email'
-              type='email'
-              {...register('email')}
-              placeholder='seu.email@ubs.com'
-              aria-invalid={touchedFields.email && !!errors.email ? 'true' : 'false'}
+              id="email"
+              type="email"
+              {...register("email")}
+              placeholder="seu.email@ubs.com"
+              aria-invalid={
+                touchedFields.email && !!errors.email ? "true" : "false"
+              }
             />
             {touchedFields.email && errors.email && (
-              <p className='text-sm text-destructive'>{errors.email.message}</p>
+              <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
           </div>
 
-          <div className='space-y-2'>
-            <Label htmlFor='password'>Password</Label>
-            <Input
-              id='password'
-              type='password'
-              {...register('password')}
-              placeholder='••••••'
-              aria-invalid={touchedFields.password && !!errors.password ? 'true' : 'false'}
-            />
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                {...register("password")}
+                placeholder="••••••"
+                aria-invalid={
+                  touchedFields.password && !!errors.password ? "true" : "false"
+                }
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             {touchedFields.password && errors.password && (
-              <p className='text-sm text-destructive'>
+              <p className="text-sm text-destructive">
                 {errors.password.message}
               </p>
             )}
           </div>
 
           <Button
-            variant='default'
-            type='submit'
-            className='w-full'
+            variant="default"
+            type="submit"
+            className="w-full"
             disabled={!isValid}
           >
             Login
