@@ -77,10 +77,12 @@ test.describe('Login Page', () => {
     // Type password
     await page.keyboard.type('Test123456');
 
+    // Tab to password visibility toggle
+    await page.keyboard.press('Tab');
+
     // Tab to login button
     await page.keyboard.press('Tab');
     await expect(page.getByRole('button', { name: /login/i })).toBeFocused();
-
     await expect(page.getByRole('button', { name: /login/i })).toBeEnabled();
   });
 
