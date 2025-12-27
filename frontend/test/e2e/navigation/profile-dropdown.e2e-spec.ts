@@ -1,27 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
+import { mockLoginApi, mockUsers } from '../helpers/auth-mocks';
 
 test.describe('Profile Dropdown', () => {
   let loginPage: LoginPage;
 
   test.beforeEach(async ({ page }) => {
     // Mock the login API endpoint
-    await page.route('**/api/auth/login', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          message: 'Login successful',
-          token: 'fake-jwt-token',
-          user: {
-            id: 1,
-            email: 'johndoe@email.com',
-            role: 'ROLE_EMPLOYEE',
-            name: 'John Doe',
-          }
-        }),
-      });
-    });
+    await mockLoginApi(page, mockUsers.employee);
 
     loginPage = new LoginPage(page);
     await loginPage.goto();

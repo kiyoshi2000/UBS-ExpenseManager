@@ -1,42 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
+import { mockLoginApiDynamic } from '../helpers/auth-mocks';
 
 test.describe('Role-Based Navigation', () => {
   let loginPage: LoginPage;
 
   test.beforeEach(async ({ page }) => {
     // Mock the login API endpoint with dynamic role based on email
-    await page.route('**/api/auth/login', async route => {
-      const request = route.request();
-      const postData = request.postDataJSON();
-      const email = postData?.email || '';
-
-      let role = 'ROLE_EMPLOYEE';
-      let name = 'Employee';
-
-      if (email.includes('finance')) {
-        role = 'ROLE_FINANCE';
-        name = 'Finance User';
-      } else if (email.includes('manager')) {
-        role = 'ROLE_MANAGER';
-        name = 'Manager';
-      }
-
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          message: 'Login successful',
-          token: 'mock-jwt-token',
-          user: {
-            id: 1,
-            email: email,
-            role: role,
-            name: name
-          }
-        })
-      });
-    });
+    await mockLoginApiDynamic(page);
 
     loginPage = new LoginPage(page);
     await loginPage.goto();
