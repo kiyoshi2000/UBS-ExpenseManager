@@ -45,9 +45,9 @@ describe('Sidebar', () => {
     mockUseAuth.mockReturnValue({
       user: {
         id: 1,
-        email: 'admin@ubs.com',
-        role: 'ROLE_ADMIN' as UserRole,
-        name: 'Admin User',
+        email: 'finance@ubs.com',
+        role: 'ROLE_FINANCE' as UserRole,
+        name: 'Finance User',
       },
       isAuthenticated: true,
       logout: vi.fn(),

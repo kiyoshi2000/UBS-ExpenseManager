@@ -99,9 +99,9 @@ describe('Header', () => {
     mockUseAuth.mockReturnValue({
       user: {
         id: 1,
-        email: 'admin@ubs.com',
-        role: 'ROLE_ADMIN' as UserRole,
-        name: 'Admin',
+        email: 'finance@ubs.com',
+        role: 'ROLE_FINANCE' as UserRole,
+        name: 'Finance',
       },
       isAuthenticated: true,
       logout: mockLogout,
@@ -116,7 +116,7 @@ describe('Header', () => {
     );
 
     // Get the profile button (not the dark mode toggle)
-    const profileButton = screen.getByText('Admin').closest('button');
+    const profileButton = screen.getByText('Finance').closest('button');
     fireEvent.click(profileButton!);
 
     await waitFor(() => {
