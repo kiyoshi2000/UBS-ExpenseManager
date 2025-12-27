@@ -96,7 +96,9 @@ export const Header = () => {
         >
           <div className='flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300'>
             <span className='text-sm font-semibold'>
-              {user.email.charAt(0).toUpperCase()}
+              {user?.name
+                ? user.name.charAt(0).toUpperCase()
+                : user.email.charAt(0).toUpperCase()}
             </span>
           </div>
           <div className='hidden text-left sm:block'>
