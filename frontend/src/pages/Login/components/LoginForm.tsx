@@ -58,9 +58,10 @@ export const LoginForm = () => {
       );
 
       localStorage.setItem('jwt_token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
       localStorage.setItem('user_role', result.user.role);
 
-      void navigate('/dashboard');
+      navigate('/dashboard');
     } catch (error) {
       let message = 'Unexpected error while logging in. Try again later!';
 
