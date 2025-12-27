@@ -67,7 +67,7 @@ export const LoginForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="text-xl text-left">
           Login to your account
