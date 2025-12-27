@@ -17,6 +17,7 @@ test.describe('Dashboard Page', () => {
             id: 1,
             email: 'johndoe@email.com',
             role: 'ROLE_EMPLOYEE',
+            name: 'John Doe',
           }
         }),
       });
