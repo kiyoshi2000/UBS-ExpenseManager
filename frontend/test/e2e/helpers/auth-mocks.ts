@@ -1,5 +1,10 @@
 import { Page } from '@playwright/test';
 
+interface LoginRequestData {
+  email: string;
+  password: string;
+}
+
 export const mockUsers = {
   employee: {
     id: 1,
@@ -48,18 +53,20 @@ export async function mockLoginApi(
 export async function mockLoginApiDynamic(page: Page) {
   await page.route('**/api/auth/login', async (route) => {
     const request = route.request();
-    const postData = request.postDataJSON();
-    const email = postData?.email || '';
+    const postData = request.postDataJSON() as LoginRequestData | null;
+    const email = postData?.email ?? '';
 
     let role = 'ROLE_EMPLOYEE';
     let name = 'Employee';
 
-    if (email.includes('finance')) {
-      role = 'ROLE_FINANCE';
-      name = 'Finance User';
-    } else if (email.includes('manager')) {
-      role = 'ROLE_MANAGER';
-      name = 'Manager';
+    if (typeof email === 'string') {
+      if (email.includes('finance')) {
+        role = 'ROLE_FINANCE';
+        name = 'Finance User';
+      } else if (email.includes('manager')) {
+        role = 'ROLE_MANAGER';
+        name = 'Manager';
+      }
     }
 
     await route.fulfill({
