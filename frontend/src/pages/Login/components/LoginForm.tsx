@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/services/api";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import {
   Card,
@@ -31,6 +32,7 @@ type LoginFormData = z.infer<typeof loginFormSchema>;
 
 export const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const {
@@ -47,6 +49,7 @@ export const LoginForm = () => {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    setLoginError(null);
     try {
       const { data: result } = await api.post("/api/auth/login", data);
 
@@ -59,7 +62,7 @@ export const LoginForm = () => {
         error.response?.data?.message ??
         "Unexpected error while logging in. Try again later!";
 
-      alert(message);
+      setLoginError(message);
     }
   };
 
@@ -121,6 +124,13 @@ export const LoginForm = () => {
               </p>
             )}
           </div>
+
+          {loginError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{loginError}</AlertDescription>
+            </Alert>
+          )}
 
           <Button
             variant="default"
