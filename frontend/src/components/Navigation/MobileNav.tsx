@@ -3,7 +3,7 @@ import ubsLogoDark from '@/assets/ubs-logo-dark.svg';
 import { getMenuItemsForRole } from '@/config/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { ChevronDown, LogOut, Menu, User, X } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, Moon, Sun, User, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MenuItem } from './MenuItem';
@@ -11,6 +11,12 @@ import { MenuItem } from './MenuItem';
 export const MobileNav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark');
+    }
+    return false;
+  });
   const { user, logout } = useAuth();
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -20,6 +26,17 @@ export const MobileNav = () => {
   }
 
   const menuItems = getMenuItemsForRole(user.role);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      setIsDarkMode(true);
+    } else if (savedTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+      setIsDarkMode(false);
+    }
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -58,6 +75,18 @@ export const MobileNav = () => {
     logout();
   };
 
+  const toggleDarkMode = () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
   return (
     <>
       <header className='fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-900 md:hidden'>
@@ -92,7 +121,21 @@ export const MobileNav = () => {
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
-        <div className='flex h-16 items-center justify-end border-b border-gray-200 px-4 dark:border-gray-800'>
+        <div className='flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-800'>
+          <div className='flex items-center gap-2'>
+            <button
+              onClick={toggleDarkMode}
+              className='rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+              aria-label='Toggle dark mode'
+            >
+              {isDarkMode ? (
+                <Sun className='h-5 w-5' />
+              ) : (
+                <Moon className='h-5 w-5' />
+              )}
+            </button>
+          </div>
+
           <button
             onClick={() => setIsOpen(false)}
             className='rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
