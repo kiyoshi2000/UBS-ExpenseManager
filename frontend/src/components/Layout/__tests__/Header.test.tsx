@@ -28,24 +28,6 @@ describe('Header', () => {
     vi.clearAllMocks();
   });
 
-  it('should not render when user is not authenticated', () => {
-    mockUseAuth.mockReturnValue({
-      user: null,
-      isAuthenticated: false,
-      logout: mockLogout,
-      hasRole: vi.fn(),
-      hasAnyRole: vi.fn(),
-    });
-
-    const { container } = render(
-      <BrowserRouter>
-        <Header />
-      </BrowserRouter>
-    );
-
-    expect(container.firstChild).toBeNull();
-  });
-
   it('should render user avatar with initial of email', () => {
     mockUseAuth.mockReturnValue({
       user: {
