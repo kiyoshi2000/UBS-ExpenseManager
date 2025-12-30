@@ -87,7 +87,7 @@ export const MobileNav = () => {
           </button>
         </div>
 
-        <ProfileDropdown />
+        <ProfileDropdown showTextOnSmallScreens />
 
         <nav className='flex-1 space-y-1 px-3 py-4'>
           {menuItems.map((item) => (

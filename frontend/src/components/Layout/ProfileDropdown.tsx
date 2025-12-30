@@ -4,7 +4,7 @@ import { ChevronDown, LogOut, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export const ProfileDropdown = () => {
+export const ProfileDropdown = ({ showTextOnSmallScreens = false }: { showTextOnSmallScreens?: boolean }) => {
   const { user, logout } = useAuth();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -58,7 +58,12 @@ export const ProfileDropdown = () => {
               : user.email.charAt(0).toUpperCase()}
           </span>
         </div>
-        <div className='hidden text-left sm:block'>
+        <div
+          className={cn(
+            'text-left',
+            !showTextOnSmallScreens && 'hidden sm:block'
+          )}
+        >
           <p className='text-sm font-medium text-gray-900 dark:text-white'>
             {user.name || user.email}
           </p>
