@@ -1,10 +1,9 @@
-import ubsLogo from '@/assets/ubs-logo.svg';
-import ubsLogoDark from '@/assets/ubs-logo-dark.svg';
 import { getMenuItemsForRole } from '@/config/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 import { MenuItem } from './MenuItem';
+import { Logo } from './Logo';
 
 interface SidebarProps {
   className?: string;
@@ -46,8 +45,7 @@ export const Sidebar = ({ className }: SidebarProps) => {
       )}
     >
       <div className='flex h-16 items-center border-b border-gray-200 px-6 dark:border-gray-800'>
-        <img src={ubsLogo} alt='UBS' className='h-10 mx-auto pb-1 dark:hidden' />
-        <img src={ubsLogoDark} alt='UBS' className='h-10 mx-auto pb-1 hidden dark:block' />
+        <Logo className='h-10 mx-auto pb-1' />
       </div>
 
       <nav className='flex-1 space-y-1 px-3 py-4'>

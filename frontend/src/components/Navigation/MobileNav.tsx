@@ -1,22 +1,18 @@
-import ubsLogo from '@/assets/ubs-logo.svg';
-import ubsLogoDark from '@/assets/ubs-logo-dark.svg';
 import { getMenuItemsForRole } from '@/config/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
 import { ChevronDown, LogOut, Menu, Moon, Sun, User, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MenuItem } from './MenuItem';
+import { Logo } from './Logo';
 
 export const MobileNav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return false;
-  });
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const { user, logout } = useAuth();
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -26,17 +22,6 @@ export const MobileNav = () => {
   }
 
   const menuItems = getMenuItemsForRole(user.role);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      setIsDarkMode(true);
-    } else if (savedTheme === 'light') {
-      document.documentElement.classList.remove('dark');
-      setIsDarkMode(false);
-    }
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -75,28 +60,11 @@ export const MobileNav = () => {
     logout();
   };
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
-
   return (
     <>
       <header className='fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-900 md:hidden'>
         <div className='flex items-center gap-3'>
-          <img src={ubsLogo} alt='UBS' className='h-10 pb-1 dark:hidden' />
-          <img
-            src={ubsLogoDark}
-            alt='UBS'
-            className='h-10 pb-1 hidden dark:block'
-          />
+          <Logo className='h-10 pb-1' />
         </div>
 
         <button
