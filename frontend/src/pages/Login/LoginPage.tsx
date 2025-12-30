@@ -1,16 +1,29 @@
 import { LoginForm } from './components/LoginForm';
 import ubsLogo from '@/assets/ubs-logo.svg';
 
+/**
+ * LoginPage
+ *
+ * Responsible for rendering the login screen layout.
+ *
+ * This component:
+ * - Defines the page structure and branding (UBS visual identity)
+ * - Delegates all authentication logic to LoginForm
+ *
+ * Business logic (API calls, validation, authentication)
+ * must NOT be implemented here.
+ */
+
 export const LoginPage = () => {
   return (
     <div className="flex min-h-screen">
-      {/* Painel Esquerdo - Vermelho UBS */}
+      {/* Left panel - UBS branding */}
       <div
         className="hidden lg:block lg:w-2/3 bg-[#E60100]"
         aria-hidden="true"
       />
 
-      {/* Painel Direito - Formulário */}
+      {/* Right panel - Login form */}
       <div className="w-full lg:w-1/2 flex flex-col items-center p-6 pt-15 bg-background">
         {/* Logo e Título */}
         <div className="flex flex-col items-center space-y-5 mb-10">
@@ -20,7 +33,7 @@ export const LoginPage = () => {
           </h1>
         </div>
 
-        {/* Formulário */}
+        {/* Authentication form */}
         <LoginForm />
       </div>
     </div>
