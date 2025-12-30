@@ -1,15 +1,15 @@
 import api from "./api";
-import { Department } from "@/types/department";
+import { Department, DepartmentCreateRequest } from "@/types/department";
 
 export function listDepartments() {
   return api.get<Department[]>("/api/departments");
 }
 
-export function createDepartment(data: Omit<Department, "id">) {
+export function createDepartment(data: DepartmentCreateRequest) {
   return api.post<Department>("/api/departments", data);
 }
 
-export function updateDepartment(id: number, data: Omit<Department, "id">) {
+export function updateDepartment(id: number, data: DepartmentCreateRequest) {
   return api.put<Department>(`/api/departments/${id}`, data);
 }
 
