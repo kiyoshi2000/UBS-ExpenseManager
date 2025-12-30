@@ -3,11 +3,11 @@ import { Department } from "@/types/department";
 /**
  * DepartmentTable
  *
- * Displays a list of departments in a tabular format.
+ * Presentational component for listing departments.
  *
- * This component is purely presentational:
- * - No API calls
- * - No business logic
+ * Improvements:
+ * - Clear action buttons (visual + hover)
+ * - Better spacing and readability
  */
 
 type Props = {
@@ -24,43 +24,53 @@ export const DepartmentTable = ({
   onDelete,
 }: Props) => {
   return (
-    <table className="w-full border-collapse">
-      <thead>
-        <tr className="border-b">
-          <th className="text-left p-2">Name</th>
-          <th className="text-left p-2">Monthly Budget</th>
-          <th className="text-left p-2">Currency</th>
-          {canEdit && <th className="p-2">Actions</th>}
-        </tr>
-      </thead>
-
-      <tbody>
-        {departments.map((dept) => (
-          <tr key={dept.id} className="border-b">
-            <td className="p-2">{dept.name}</td>
-            <td className="p-2">{dept.monthlyBudget}</td>
-            <td className="p-2">{dept.currency}</td>
-
-            {canEdit && (
-              <td className="p-2 space-x-2">
-                <button
-                  onClick={() => onEdit(dept)}
-                  className="text-blue-600"
-                >
-                  Edit
-                </button>
-
-                <button
-                  onClick={() => onDelete(dept.id)}
-                  className="text-red-600"
-                >
-                  Delete
-                </button>
-              </td>
-            )}
+    <div className="border rounded">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b bg-muted/40">
+            <th className="text-left p-3">Name</th>
+            <th className="text-left p-3">Monthly Budget</th>
+            <th className="text-left p-3">Currency</th>
+            {canEdit && <th className="text-left p-3">Actions</th>}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          {departments.length === 0 ? (
+            <tr>
+              <td className="p-3 text-muted-foreground" colSpan={canEdit ? 4 : 3}>
+                No departments found.
+              </td>
+            </tr>
+          ) : (
+            departments.map((dept) => (
+              <tr key={dept.id} className="border-b">
+                <td className="p-3">{dept.name}</td>
+                <td className="p-3">{dept.monthlyBudget}</td>
+                <td className="p-3">{dept.currency}</td>
+
+                {canEdit && (
+                  <td className="p-3 flex gap-2">
+                    <button
+                      onClick={() => onEdit(dept)}
+                      className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => onDelete(dept.id)}
+                      className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 };
