@@ -28,3 +28,18 @@ export const validatePassword = (password: string): string | null => {
 
   return null; // Sem erro
 };
+
+import { z } from "zod";
+/* =======================
+   DEPARTMENT
+======================= */
+
+export const departmentSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  monthlyBudget: z
+    .number()
+    .min(0, "Monthly budget must be positive"),
+  currency: z.string().min(1, "Currency is required"),
+});
+
+export type DepartmentFormData = z.infer<typeof departmentSchema>;

@@ -3,6 +3,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { PublicRoute } from '@/components/PublicRoute';
 import { LoginPage } from './pages/Login';
 import { DashboardPage } from './pages/Dashboard';
+import { DepartmentPage } from './pages/Department';
 
 function App() {
   return (
@@ -24,6 +25,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/departments"
+          element={
+            <ProtectedRoute /*allowedRoles={['ROLE_FINANCE']*/>
+              <DepartmentPage />
+            </ProtectedRoute>
+          }
+        />
+
+        
 
       </Routes>
     </BrowserRouter>
