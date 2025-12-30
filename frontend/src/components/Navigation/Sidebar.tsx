@@ -50,13 +50,13 @@ export const Sidebar = ({ className }: SidebarProps) => {
         className
       )}
     >
-      <div className='flex h-16 items-center border-b border-gray-200 px-6 dark:border-gray-800'>
+      <div className='flex h-16 items-center justify-center border-b border-gray-200 px-6 dark:border-gray-800'>
         <button
           onClick={handleLogoClick}
           className='bg-transparent border-none p-0 cursor-pointer hover:opacity-80 transition-opacity'
           aria-label='Go to dashboard'
         >
-          <Logo className='h-10 mx-auto pb-1' />
+          <Logo className='h-10 pb-1' />
         </button>
       </div>
 
