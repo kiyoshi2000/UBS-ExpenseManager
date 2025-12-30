@@ -2,6 +2,7 @@ import { getMenuItemsForRole } from '@/config/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MenuItem } from './MenuItem';
 import { Logo } from './Logo';
 
@@ -13,12 +14,17 @@ export const Sidebar = ({ className }: SidebarProps) => {
   const { user } = useAuth();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   if (!user) {
     return null;
   }
 
   const menuItems = getMenuItemsForRole(user.role);
+
+  const handleLogoClick = () => {
+    navigate('/dashboard');
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -45,7 +51,13 @@ export const Sidebar = ({ className }: SidebarProps) => {
       )}
     >
       <div className='flex h-16 items-center border-b border-gray-200 px-6 dark:border-gray-800'>
-        <Logo className='h-10 mx-auto pb-1' />
+        <button
+          onClick={handleLogoClick}
+          className='bg-transparent border-none p-0 cursor-pointer hover:opacity-80 transition-opacity'
+          aria-label='Go to dashboard'
+        >
+          <Logo className='h-10 mx-auto pb-1' />
+        </button>
       </div>
 
       <nav className='flex-1 space-y-1 px-3 py-4'>

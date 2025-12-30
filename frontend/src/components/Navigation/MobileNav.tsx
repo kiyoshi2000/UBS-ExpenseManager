@@ -60,12 +60,20 @@ export const MobileNav = () => {
     logout();
   };
 
+  const handleLogoClick = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <>
       <header className='fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-900 md:hidden'>
-        <div className='flex items-center gap-3'>
+        <button
+          onClick={handleLogoClick}
+          className='bg-transparent border-none p-0 cursor-pointer hover:opacity-80 transition-opacity'
+          aria-label='Go to dashboard'
+        >
           <Logo className='h-10 pb-1' />
-        </div>
+        </button>
 
         <button
           onClick={() => setIsOpen(!isOpen)}
