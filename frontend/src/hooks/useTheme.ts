@@ -9,6 +9,8 @@ export const useTheme = () => {
   });
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -22,6 +24,8 @@ export const useTheme = () => {
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
+    if (typeof window === 'undefined' || !window.localStorage) return;
+
     if (newDarkMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
