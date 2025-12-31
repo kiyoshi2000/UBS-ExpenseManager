@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { LoginForm } from '../../src/pages/Login/components/LoginForm';
 
 describe('LoginForm', () => {
-  it('renderiza os campos de email e senha', () => {
+  it('renders email and password fields', () => {
     render(<LoginForm />);
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
@@ -12,44 +12,44 @@ describe('LoginForm', () => {
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
   });
 
-  it('botão inicia desabilitado com campos vazios', () => {
+  it('button starts disabled with empty fields', () => {
     render(<LoginForm />);
 
     expect(screen.getByRole('button', { name: /login/i })).toBeDisabled();
   });
 
-  it('botão continua desabilitado com email inválido', async () => {
+  it('button remains disabled with invalid email', async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
 
-    await user.type(screen.getByLabelText(/email/i), 'emailinvalido');
+    await user.type(screen.getByLabelText(/email/i), 'invalidemail');
     await user.type(screen.getByLabelText(/password/i), '123456');
 
     expect(screen.getByRole('button', { name: /login/i })).toBeDisabled();
   });
 
-  it('botão fica habilitado com email e senha válidos', async () => {
+  it('button becomes enabled with valid email and password', async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
 
-    await user.type(screen.getByLabelText(/email/i), 'usuario@ubs.com');
+    await user.type(screen.getByLabelText(/email/i), 'user@ubs.com');
     await user.type(screen.getByLabelText(/password/i), '123456');
 
     expect(screen.getByRole('button', { name: /login/i })).toBeEnabled();
   });
 
-  it('mostra erro de email ao perder foco com email inválido', async () => {
+  it('shows email error on blur with invalid email', async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
 
     const emailInput = screen.getByLabelText(/email/i);
-    await user.type(emailInput, 'emailinvalido');
+    await user.type(emailInput, 'invalidemail');
     await user.tab();
 
     expect(screen.getByText(/invalid email format/i)).toBeInTheDocument();
   });
 
-  it('mostra erro de senha ao perder foco com senha vazia', async () => {
+  it('shows password error on blur with empty password', async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
 
@@ -60,7 +60,7 @@ describe('LoginForm', () => {
     expect(screen.getByText(/password is required/i)).toBeInTheDocument();
   });
 
-  it('mostra erro de senha com menos de 6 caracteres', async () => {
+  it('shows error for password with less than 6 characters', async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
 
