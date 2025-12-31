@@ -1,21 +1,24 @@
-import { LoginForm } from './components/LoginForm';
-import ubsLogo from '@/assets/ubs-logo.svg';
+import { LoginForm } from "./components/LoginForm";
+import { Logo } from "@/components/Navigation";
+import { useTheme } from "@/hooks/useTheme";
+import ubsLogin from "@/assets/ubs-login.jpeg";
 
 export const LoginPage = () => {
+  useTheme();
+
   return (
-    <div className="flex min-h-screen">
-      {/* Painel Esquerdo - Vermelho UBS */}
-      <div
-        className="hidden lg:block lg:w-2/3 bg-[#E60100]"
-        aria-hidden="true"
-      />
+    <div className="flex min-h-screen lg:h-screen lg:overflow-hidden">
+      {/* Painel Esquerdo - Imagem */}
+      <div className="hidden lg:flex flex-[2] h-screen">
+        <img src={ubsLogin} alt="UBS" className="w-full h-full object-cover" />
+      </div>
 
       {/* Painel Direito - Formulário */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center p-6 pt-15 bg-background">
+      <div className="w-full lg:flex-[1.5] flex flex-col items-center justify-center lg:justify-start px-4 py-8 sm:p-6 lg:pt-12 lg:px-10 bg-background overflow-y-auto">
         {/* Logo e Título */}
-        <div className="flex flex-col items-center space-y-5 mb-10">
-          <img src={ubsLogo} alt="UBS" className="h-30 w-auto" />
-          <h1 className="text-5xl font-semibold text-foreground">
+        <div className="flex flex-col items-center text-center space-y-4 sm:space-y-5 mb-8 sm:mb-10">
+          <Logo className='h-20 sm:h-30 w-auto' />
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-foreground">
             Expense Manager
           </h1>
         </div>

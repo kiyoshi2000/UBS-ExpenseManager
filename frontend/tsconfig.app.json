@@ -22,10 +22,9 @@
     "noUncheckedSideEffectImports": true,
 
     /* Path mapping */
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "src/vite-env.d.ts"]
 }

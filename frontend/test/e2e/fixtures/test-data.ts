@@ -9,9 +9,9 @@ export const testUsers = {
     email: 'user@ubs.com',
     password: 'Test123456',
   },
-  admin: {
-    email: 'admin@ubs.com',
-    password: 'Admin123456',
+  finance: {
+    email: 'finance@ubs.com',
+    password: 'finance123456',
   },
   invalidEmail: {
     email: 'invalid-email',
