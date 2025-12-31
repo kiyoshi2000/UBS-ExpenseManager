@@ -1,8 +1,11 @@
 import { LoginForm } from "./components/LoginForm";
-import ubsLogo from "@/assets/ubs-logo.svg";
+import { Logo } from "@/components/Navigation";
+import { useTheme } from "@/hooks/useTheme";
 import ubsLogin from "@/assets/ubs-login.jpeg";
 
 export const LoginPage = () => {
+  useTheme();
+
   return (
     <div className="flex min-h-screen lg:h-screen lg:overflow-hidden">
       {/* Painel Esquerdo - Imagem */}
@@ -14,7 +17,7 @@ export const LoginPage = () => {
       <div className="w-full lg:flex-[1.5] flex flex-col items-center justify-center lg:justify-start px-4 py-8 sm:p-6 lg:pt-12 lg:px-10 bg-background overflow-y-auto">
         {/* Logo e Título */}
         <div className="flex flex-col items-center text-center space-y-4 sm:space-y-5 mb-8 sm:mb-10">
-          <img src={ubsLogo} alt="UBS" className="h-20 sm:h-30 w-auto" />
+          <Logo className='h-20 sm:h-30 w-auto' />
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-foreground">
             Expense Manager
           </h1>

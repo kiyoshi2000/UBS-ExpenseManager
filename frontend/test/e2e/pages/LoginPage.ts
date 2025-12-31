@@ -81,9 +81,10 @@ export class LoginPage {
 
   /**
    * Get error message element by text
+   * Uses user-facing text content instead of CSS selectors
    */
   getErrorByText(text: string | RegExp) {
-    return this.page.locator('p.text-destructive', { hasText: text });
+    return this.page.getByText(text);
   }
 
   /**
@@ -114,10 +115,11 @@ export class LoginPage {
 
   /**
    * Verify no errors are shown
+   * Checks that form inputs don't have aria-invalid="true"
    */
   async expectNoErrors() {
-    const errors = this.page.locator('p.text-destructive');
-    await expect(errors).toHaveCount(0);
+    await expect(this.emailInput).toHaveAttribute('aria-invalid', 'false');
+    await expect(this.passwordInput).toHaveAttribute('aria-invalid', 'false');
   }
 
   /**
