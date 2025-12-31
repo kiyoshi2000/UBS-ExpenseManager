@@ -97,8 +97,11 @@ class UserServiceTest {
     @Test
     void updateUser_success_nameAndManager() {
         UserUpdateRequest request = UserUpdateRequest.builder()
+                .email("employee@ubs.com")      // obrigatório
+                .password("123456")             // obrigatório
+                .role(UserRole.EMPLOYEE)        // obrigatório
                 .name("Employee Updated")
-                .managerEmail("manager@ubs.com")
+                .managerEmail("manager@ubs.com") // pode mudar
                 .build();
 
         when(repository.findById(2L)).thenReturn(Optional.of(employee));
@@ -111,17 +114,21 @@ class UserServiceTest {
         assertEquals("manager@ubs.com", response.getManager().getEmail());
     }
 
+
     @Test
-    void updateUser_emailAlreadyUsed_throwsException() {
+    void updateUser_changeEmail_throwsException() {
         UserUpdateRequest request = UserUpdateRequest.builder()
-                .email("used@ubs.com")
+                .email("other@ubs.com")          // diferente do atual
+                .password("123456")
+                .role(UserRole.EMPLOYEE)
+                .name("Employee")
+                .managerEmail("manager@ubs.com")
                 .build();
 
         when(repository.findById(2L)).thenReturn(Optional.of(employee));
-        when(repository.existsByEmailAndIdNot("used@ubs.com", 2L)).thenReturn(true);
 
         assertThrows(
-                UserExistsException.class,
+                IllegalArgumentException.class,
                 () -> userService.update(2L, request)
         );
     }

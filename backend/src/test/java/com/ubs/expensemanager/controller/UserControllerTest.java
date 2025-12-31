@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ubs.expensemanager.dto.request.UserFilterRequest;
 import com.ubs.expensemanager.dto.request.UserUpdateRequest;
 import com.ubs.expensemanager.dto.response.UserResponse;
+import com.ubs.expensemanager.model.UserRole;
 import com.ubs.expensemanager.security.JwtAuthFilter;
 import com.ubs.expensemanager.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +115,11 @@ class UserControllerTest {
     @Test
     void shouldUpdateUserSuccessfully() throws Exception {
         UserUpdateRequest request = UserUpdateRequest.builder()
+                .email("employee@ubs.com")
+                .password("123456")
+                .role(UserRole.EMPLOYEE)
                 .name("Employee Updated")
+                .managerEmail("manager@ubs.com")
                 .build();
 
         UserResponse updated = UserResponse.builder()
@@ -140,6 +145,7 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Employee Updated"))
                 .andExpect(jsonPath("$.role").value("ROLE_EMPLOYEE"))
+                .andExpect(jsonPath("$.email").value("employee@ubs.com"))
                 .andExpect(jsonPath("$.manager.email").value("manager@ubs.com"));
     }
 
