@@ -38,12 +38,11 @@ public class DepartmentService {
             throw new ConflictException("Department with this name already exists");
         }
 
-        Department department = new Department(
-                request.getName(),
-                null, // dailyBudget is optional for now
-                request.getMonthlyBudget(),
-                request.getCurrency()
-        );
+        Department department = Department.builder()
+            .name(request.getName())
+            .monthlyBudget(request.getMonthlyBudget())
+            .currency(request.getCurrency())
+            .build();
 
         Department savedDepartment = departmentRepository.save(department);
 
