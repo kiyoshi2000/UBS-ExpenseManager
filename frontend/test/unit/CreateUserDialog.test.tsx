@@ -209,7 +209,7 @@ describe('CreateUserDialog', () => {
     expect(onOpenChange).not.toHaveBeenCalledWith(false);
   });
 
-  it('resets form and closes dialog after successful submission', async () => {
+  it('calls onSubmit but does not close dialog after successful submission', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
     const onOpenChange = vi.fn();
@@ -223,6 +223,7 @@ describe('CreateUserDialog', () => {
     await user.click(submitButton);
 
     expect(onSubmit).toHaveBeenCalled();
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    // Dialog should NOT close automatically - parent handles closing on success
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
   });
 });

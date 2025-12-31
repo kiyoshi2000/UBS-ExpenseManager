@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -20,12 +21,14 @@ interface CreateUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateUserFormData) => void;
+  error?: string;
 }
 
 export const CreateUserDialog = ({
   open,
   onOpenChange,
   onSubmit,
+  error,
 }: CreateUserDialogProps) => {
   const [formData, setFormData] = useState<CreateUserFormData>({
     name: "",
@@ -35,6 +38,13 @@ export const CreateUserDialog = ({
   });
 
   const [errors, setErrors] = useState<UserValidationErrors>({});
+
+  // Reset form when dialog closes successfully
+  useEffect(() => {
+    if (!open) {
+      handleReset();
+    }
+  }, [open]);
 
   const handleInputChange = (field: keyof CreateUserFormData, value: string) => {
     setFormData({ ...formData, [field]: value });
@@ -119,16 +129,15 @@ export const CreateUserDialog = ({
     
     if (Object.keys(validationErrors).length === 0) {
       onSubmit(formData);
-      handleReset();
-      onOpenChange(false);
+      // Don't close the modal here - let the parent handle it on success
     }
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    onOpenChange(newOpen);
     if (!newOpen) {
       handleReset();
     }
+    onOpenChange(newOpen);
   };
 
   return (
@@ -144,6 +153,20 @@ export const CreateUserDialog = ({
             Fill in the details of the new user below
           </DialogDescription>
         </DialogHeader>
+
+        {error && (
+          <div className="flex items-start gap-3 rounded-lg bg-red-50 p-4 dark:bg-red-950/50">
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
+                Error creating user
+              </h3>
+              <p className="mt-1 text-sm text-red-700 dark:text-red-400">
+                {error}
+              </p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}

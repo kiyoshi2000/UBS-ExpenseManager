@@ -67,6 +67,8 @@ export const UsersPage = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [createErrorMessage, setCreateErrorMessage] = useState<string>("");
+  const [openCreateSuccessDialog, setOpenCreateSuccessDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -123,6 +125,7 @@ export const UsersPage = () => {
   };
 
   const handleAddEmployee = (): void => {
+    setCreateErrorMessage("");
     setOpenCreateDialog(true);
   };
 
@@ -138,8 +141,12 @@ export const UsersPage = () => {
 
       await api.post("/api/auth/register", payload);
       setOpenCreateDialog(false);
+      setCreateErrorMessage("");
       await fetchUsers(currentPage, 10, searchQuery);
+      setOpenCreateSuccessDialog(true);
     } catch (err) {
+      const errorMsg = getErrorMessage(err);
+      setCreateErrorMessage(errorMsg);
       console.error("Error creating user:", err);
     }
   };
@@ -365,6 +372,18 @@ export const UsersPage = () => {
         open={openCreateDialog}
         onOpenChange={setOpenCreateDialog}
         onSubmit={handleCreateUser}
+        error={createErrorMessage}
+      />
+
+      <ConfirmationDialog
+        open={openCreateSuccessDialog}
+        onOpenChange={setOpenCreateSuccessDialog}
+        title="User Created"
+        description="The user has been successfully created."
+        confirmText="Done"
+        variant="success"
+        icon={<CheckCircle className="h-6 w-6 text-green-600" />}
+        onConfirm={() => setOpenCreateSuccessDialog(false)}
       />
 
       <EditUserDialog
