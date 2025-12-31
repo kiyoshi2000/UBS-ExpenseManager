@@ -14,4 +14,7 @@ public class UserFilterRequest {
 
     // include inactive users
     private Boolean includeInactive = false;
+
+    // search name or email
+    private String search;
 }

@@ -59,6 +59,7 @@ interface PageableResponse<T> {
 
 export const UsersPage = () => {
   const [searchValue, setSearchValue] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,18 +83,19 @@ export const UsersPage = () => {
   const [userToReactivate, setUserToReactivate] = useState<User | null>(null);
 
   useEffect(() => {
-    fetchUsers(currentPage, 10);
-  }, [currentPage]);
+    fetchUsers(currentPage, 10, searchQuery);
+  }, [currentPage, searchQuery]);
 
-  const fetchUsers = async (page: number, size: number): Promise<void> => {
+  const fetchUsers = async (page: number, size: number, search: string = ""): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
       
       // Spring Boot pages are 0-indexed, but UI uses 1-indexed
       const pageNumber = page - 1;
+      const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
       const response = await api.get<PageableResponse<ApiUser>>(
-        `/api/users?includeInactive=true&page=${pageNumber}&size=${size}&sort=name,asc`
+        `/api/users?includeInactive=true&page=${pageNumber}&size=${size}&sort=name,asc${searchParam}`
       );
       
       // Map API payload to local User shape
@@ -136,7 +138,7 @@ export const UsersPage = () => {
 
       await api.post("/api/auth/register", payload);
       setOpenCreateDialog(false);
-      await fetchUsers(currentPage, 10);
+      await fetchUsers(currentPage, 10, searchQuery);
     } catch (err) {
       console.error("Error creating user:", err);
     }
@@ -167,7 +169,7 @@ export const UsersPage = () => {
       setOpenEditDialog(false);
       setEditErrorMessage("");
       // Refresh users list after update
-      await fetchUsers(currentPage, 10);
+      await fetchUsers(currentPage, 10, searchQuery);
       setOpenSuccessDialog(true);
     } catch (err) {
       const errorMsg = getErrorMessage(err);
@@ -191,7 +193,7 @@ export const UsersPage = () => {
       try {
         await api.patch(`/api/users/${userToReactivate.id}/reactivate`, {});
         setOpenReactivateDialog(false);
-        await fetchUsers(currentPage, 10);
+        await fetchUsers(currentPage, 10, searchQuery);
         setOpenReactivateSuccessDialog(true);
       } catch (err) {
         setOpenReactivateDialog(false);
@@ -208,7 +210,7 @@ export const UsersPage = () => {
       try {
         await api.delete(`/api/users/${userToDelete.id}`);
         setOpenDeleteDialog(false);
-        await fetchUsers(currentPage, 10);
+        await fetchUsers(currentPage, 10, searchQuery);
         setOpenDeleteSuccessDialog(true);
       } catch (err) {
         setOpenDeleteDialog(false);
@@ -222,6 +224,11 @@ export const UsersPage = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleSearch = () => {
+    setSearchQuery(searchValue);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const columns: ColumnDef<User>[] = [
@@ -320,11 +327,12 @@ export const UsersPage = () => {
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <SearchInput
             placeholder="Search employee"
             value={searchValue}
             onChange={setSearchValue}
+            onSearch={handleSearch}
           />
           <ActionButton
             label="Add New Employee"

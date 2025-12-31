@@ -122,6 +122,7 @@ public class UserService {
 
         spec = spec.and(UserSpecifications.withRole(filters.getRole()));
         spec = spec.and(UserSpecifications.isActive(filters.getIncludeInactive()));
+        spec = spec.and(UserSpecifications.nameOrEmailContains(filters.getSearch()));
 
         return repository.findAll(spec, pageable).map(UserResponse::fromEntity);
     }

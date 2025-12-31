@@ -40,4 +40,27 @@ public class UserSpecifications {
             return cb.isTrue(root.get("active"));
         };
     }
+
+
+     /**
+     * Creates a specification to filter users by role.
+     *
+     * @param search string to  filter name/email by, or {@code null} to not apply this filter
+     * @return a specification that matches users with the search
+     */
+    public static Specification<User> nameOrEmailContains(String search) {
+        return (root, query, cb) -> {
+            if (search == null || search.isBlank()) {
+                return null;
+            }
+
+            String pattern = "%" + search.toLowerCase() + "%";
+
+            return cb.or(
+                    cb.like(cb.lower(root.get("name")), pattern),
+                    cb.like(cb.lower(root.get("email")), pattern)
+            );
+        };
+    }
+
 }
