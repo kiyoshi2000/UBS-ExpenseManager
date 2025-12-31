@@ -61,13 +61,22 @@ class DepartmentControllerTest {
                 .build();
 
         when(departmentService.create(any()))
-                .thenReturn(null); // controller does not rely on response body for this test
+                .thenReturn(
+                    DepartmentResponse.builder()
+                        .id(1L)
+                        .name("Finance")
+                        .monthlyBudget(BigDecimal.valueOf(3000))
+                        .currency("USD")
+                        .build()
+                );
 
         mockMvc.perform(post(DEPARTMENTS_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/api/departments/1"));
     }
+
 
     /**
      * Verifies that invalid input returns HTTP 400 Bad Request.
