@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MockMvc;
+import com.ubs.expensemanager.dto.response.DepartmentResponse;
 import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.any;
