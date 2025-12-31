@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MockMvc;
+import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -55,7 +56,7 @@ class DepartmentControllerTest {
     void shouldCreateDepartmentSuccessfully() throws Exception {
         DepartmentCreateRequest request = DepartmentCreateRequest.builder()
                 .name("Finance")
-                .monthlyBudget(3000)
+                .monthlyBudget(BigDecimal.valueOf(3000))
                 .currency("USD")
                 .build();
 
@@ -75,7 +76,7 @@ class DepartmentControllerTest {
     void shouldReturn400WhenRequestIsInvalid() throws Exception {
         DepartmentCreateRequest request = DepartmentCreateRequest.builder()
                 .name("") // invalid
-                .monthlyBudget(-10) // invalid
+                .monthlyBudget(BigDecimal.valueOf(-10)) // invalid
                 .currency("") // invalid
                 .build();
 
@@ -98,7 +99,7 @@ class DepartmentControllerTest {
     void shouldReturn409WhenDepartmentAlreadyExists() throws Exception {
         DepartmentCreateRequest request = DepartmentCreateRequest.builder()
                 .name("Finance")
-                .monthlyBudget(3000)
+                .monthlyBudget(BigDecimal.valueOf(3000))
                 .currency("USD")
                 .build();
 
@@ -119,7 +120,7 @@ class DepartmentControllerTest {
     void shouldReturn403WhenUserHasNoPermission() throws Exception {
         DepartmentCreateRequest request = DepartmentCreateRequest.builder()
                 .name("Finance")
-                .monthlyBudget(3000)
+                .monthlyBudget(BigDecimal.valueOf(3000))
                 .currency("USD")
                 .build();
 
