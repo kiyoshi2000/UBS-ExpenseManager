@@ -13,6 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -87,14 +91,23 @@ class UserControllerTest {
     void shouldReturnAllUsers() throws Exception {
         UserFilterRequest filters = new UserFilterRequest();
 
-        when(userService.findAll(any(UserFilterRequest.class)))
-                .thenReturn(List.of(managerResponse, employeeResponse));
+        Page<UserResponse> page = new PageImpl<>(
+                List.of(managerResponse, employeeResponse),
+                PageRequest.of(0, 20),
+                2
+        );
 
-        mockMvc.perform(get(BASE_URL))
+        when(userService.findAll(any(UserFilterRequest.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        mockMvc.perform(get(BASE_URL)
+                        .param("page", "0")
+                        .param("size", "20"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2));
 
-        verify(userService).findAll(any(UserFilterRequest.class));
+        verify(userService).findAll(any(UserFilterRequest.class), any(Pageable.class));
     }
 
     /**

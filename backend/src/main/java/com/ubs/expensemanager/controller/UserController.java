@@ -4,7 +4,6 @@ import com.ubs.expensemanager.dto.request.UserFilterRequest;
 import com.ubs.expensemanager.dto.request.UserUpdateRequest;
 import com.ubs.expensemanager.dto.response.ErrorResponse;
 import com.ubs.expensemanager.dto.response.UserResponse;
-import com.ubs.expensemanager.model.UserRole;
 import com.ubs.expensemanager.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,10 +14,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * REST controller responsible for user management endpoints.
@@ -37,17 +38,6 @@ public class UserController {
 
     /**
      * Retrieves all users with optional filters.
-     *
-     * <p> Supports filtering by:
-     * <ul>
-     *   <li>{@code role} - filter by user role</li>
-     *   <li>{@code includeInactive} - include inactive users (default: false)</li>
-     * </ul>
-     * </p>
-     *
-     * @param filters the filter criteria for users
-     * @return ResponseEntity containing list of users matching the filters
-     * @see UserFilterRequest
      */
     @Operation(
             summary = "List all Users",
@@ -72,23 +62,17 @@ public class UserController {
             )
     })
     @GetMapping
-    public ResponseEntity<List<UserResponse>> findAll(
-            @ModelAttribute UserFilterRequest filters
+    public ResponseEntity<Page<UserResponse>> findAll(
+            @ModelAttribute UserFilterRequest filters,
+            @PageableDefault(size = 10, sort = "name") @ParameterObject Pageable pageable
     ) {
-        log.info("Retrieving Users with filters: {}", filters);
-        List<UserResponse> users = userService.findAll(filters);
-        log.info("Retrieved {} Users", users.size());
+        log.info("Retrieving Users with filters: {}, page:{}, size:{}", filters, pageable.getPageNumber(), pageable.getPageSize());
+        Page<UserResponse> users = userService.findAll(filters, pageable);
         return ResponseEntity.ok(users);
     }
 
     /**
      * Retrieves a specific User by their ID.
-     *
-     * <p>Returns detailed information about a single user.
-     * Requires authentication to access this endpoint.</p>
-     *
-     * @param id the unique identifier of the user
-     * @return a {@link ResponseEntity} containing the {@link UserResponse}
      */
     @Operation(
             summary = "Get User by ID",
@@ -130,15 +114,6 @@ public class UserController {
 
     /**
      * Updates an existing user's information.
-     *
-     * <p>Allows partial updates of user data including email, password, role,
-     * and manager assignment. All fields in the request are optional.
-     * Validates business rules such as manager requirements for users.
-     * For creating new users, see {@link AuthController#register}.</p>
-     *
-     * @param id the unique identifier of the user to update
-     * @param request the update request containing the fields to modify
-     * @return a {@link ResponseEntity} containing the updated {@link UserResponse}
      */
     @Operation(
             summary = "Update User",
@@ -200,9 +175,6 @@ public class UserController {
 
     /**
      * Deletes an existing user.
-     *
-     * @param id the unique identifier of the user to soft-delete
-     * @return a {@link ResponseEntity} with no content
      */
     @Operation(
             summary = "Deactivate User",
@@ -240,12 +212,6 @@ public class UserController {
 
     /**
      * Reactivates a previously deactivated user.
-     *
-     * <p>Only deactivated users can be reactivated. If the user is a manager,
-     * their manager relationship must still be valid.</p>
-     *
-     * @param id the unique identifier of the user to reactivate
-     * @return a {@link ResponseEntity} containing the reactivated {@link UserResponse}
      */
     @Operation(
             summary = "Reactivate User",

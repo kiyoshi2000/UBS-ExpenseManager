@@ -7,6 +7,7 @@ import { CreateUserDialog } from "@/components/Users/CreateUserDialog";
 import { EditUserDialog } from "@/components/Users/EditUserDialog";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { Switch } from "@/components/ui/switch";
+import { TablePagination } from "@/components/Pagination";
 import api from "@/services/api";
 import { CreateUserFormData } from "@/utils/validation";
 import { getErrorMessage } from "@/types/api-error";
@@ -30,11 +31,40 @@ interface User {
   status: string;
 }
 
+interface ApiUser {
+  id: number;
+  email: string;
+  role: string;
+  name: string;
+  active: boolean;
+  manager?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  department?: string;
+}
+
+interface PageableResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements: number;
+  empty: boolean;
+}
+
 export const UsersPage = () => {
   const [searchValue, setSearchValue] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
@@ -52,18 +82,22 @@ export const UsersPage = () => {
   const [userToReactivate, setUserToReactivate] = useState<User | null>(null);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(currentPage, 10);
+  }, [currentPage]);
 
-  const fetchUsers = async (): Promise<void> => {
+  const fetchUsers = async (page: number, size: number): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get<User[]>("/api/users?includeInactive=true");
       
-      // Map API payload to local User shape; API returns manager object and active flag
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const usersWithDepartment: User[] = response.data.map((u: any) => ({
+      // Spring Boot pages are 0-indexed, but UI uses 1-indexed
+      const pageNumber = page - 1;
+      const response = await api.get<PageableResponse<ApiUser>>(
+        `/api/users?includeInactive=true&page=${pageNumber}&size=${size}&sort=name,asc`
+      );
+      
+      // Map API payload to local User shape
+      const usersWithDepartment: User[] = response.data.content.map((u: ApiUser) => ({
         id: u.id,
         name: u.name,
         email: u.email,
@@ -76,6 +110,8 @@ export const UsersPage = () => {
       }));
 
       setUsers(usersWithDepartment);
+      setTotalPages(response.data.totalPages);
+      setTotalElements(response.data.totalElements);
     } catch (err) {
       console.error("Error fetching users:", err);
       setError("Failed to load users");
@@ -100,7 +136,7 @@ export const UsersPage = () => {
 
       await api.post("/api/auth/register", payload);
       setOpenCreateDialog(false);
-      await fetchUsers();
+      await fetchUsers(currentPage, 10);
     } catch (err) {
       console.error("Error creating user:", err);
     }
@@ -131,7 +167,7 @@ export const UsersPage = () => {
       setOpenEditDialog(false);
       setEditErrorMessage("");
       // Refresh users list after update
-      await fetchUsers();
+      await fetchUsers(currentPage, 10);
       setOpenSuccessDialog(true);
     } catch (err) {
       const errorMsg = getErrorMessage(err);
@@ -155,7 +191,7 @@ export const UsersPage = () => {
       try {
         await api.patch(`/api/users/${userToReactivate.id}/reactivate`, {});
         setOpenReactivateDialog(false);
-        await fetchUsers();
+        await fetchUsers(currentPage, 10);
         setOpenReactivateSuccessDialog(true);
       } catch (err) {
         setOpenReactivateDialog(false);
@@ -172,7 +208,7 @@ export const UsersPage = () => {
       try {
         await api.delete(`/api/users/${userToDelete.id}`);
         setOpenDeleteDialog(false);
-        await fetchUsers();
+        await fetchUsers(currentPage, 10);
         setOpenDeleteSuccessDialog(true);
       } catch (err) {
         setOpenDeleteDialog(false);
@@ -184,11 +220,9 @@ export const UsersPage = () => {
     }
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const columns: ColumnDef<User>[] = [
     {
@@ -302,10 +336,22 @@ export const UsersPage = () => {
 
       <DataTable
         columns={columns}
-        data={filteredUsers}
+        data={users}
         actions={actions}
         emptyMessage={loading ? "Loading..." : error ? error : "No Users Found"}
       />
+
+      {!loading && !error && totalElements > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            itemsPerPage={10}
+            totalItems={totalElements}
+          />
+        </div>
+      )}
 
       <CreateUserDialog
         open={openCreateDialog}

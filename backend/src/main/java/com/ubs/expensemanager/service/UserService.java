@@ -12,6 +12,8 @@ import com.ubs.expensemanager.repository.specification.UserSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -115,15 +117,13 @@ public class UserService {
         return UserResponse.fromEntity(updatedUser);
     }
 
-    public List<UserResponse> findAll(UserFilterRequest filters) {
+    public Page<UserResponse> findAll(UserFilterRequest filters, Pageable pageable) {
         Specification<User> spec = Specification.where(null);
 
         spec = spec.and(UserSpecifications.withRole(filters.getRole()));
         spec = spec.and(UserSpecifications.isActive(filters.getIncludeInactive()));
 
-        return repository.findAll(spec).stream()
-                .map(UserResponse::fromEntity)
-                .collect(Collectors.toList());
+        return repository.findAll(spec, pageable).map(UserResponse::fromEntity);
     }
 
     public UserResponse findById(Long id) {
