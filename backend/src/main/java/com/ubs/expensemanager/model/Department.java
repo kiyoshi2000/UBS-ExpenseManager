@@ -1,6 +1,11 @@
 package com.ubs.expensemanager.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
 /**
@@ -17,6 +22,10 @@ import java.math.BigDecimal;
         @UniqueConstraint(name = "uk_departments_name", columnNames = "name")
     }
 )
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Department {
 
     /**
@@ -50,64 +59,7 @@ public class Department {
 
     /**
      * Currency used for the department's budget.
-    */
+     */
     @Column(nullable = false, length = 3)
     private String currency;
-
-    /**
-     * Default constructor required by JPA.
-    */
-    public Department() {
-    }
-
-    /**
-     * Convenience constructor for creating Department instances.
-     *
-     * @param name           department name
-     * @param dailyBudget    optional daily budget
-     * @param monthlyBudget  mandatory monthly budget
-     * @param currency       currency code
-     */
-    public Department(String name, BigDecimal dailyBudget, BigDecimal monthlyBudget, String currency) {
-        this.name = name;
-        this.dailyBudget = dailyBudget;
-        this.monthlyBudget = monthlyBudget;
-        this.currency = currency;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public BigDecimal getDailyBudget() {
-        return dailyBudget;
-    }
-
-    public BigDecimal getMonthlyBudget() {
-        return monthlyBudget;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDailyBudget(BigDecimal dailyBudget) {
-        this.dailyBudget = dailyBudget;
-    }
-
-    public void setMonthlyBudget(BigDecimal monthlyBudget) {
-        this.monthlyBudget = monthlyBudget;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
 }
