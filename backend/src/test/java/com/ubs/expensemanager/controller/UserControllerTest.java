@@ -172,4 +172,76 @@ class UserControllerTest {
 
         verify(userService).deactivate(2L);
     }
+
+    @Test
+    void shouldFilterUsersByIncludeInactive() throws Exception {
+        Page<UserResponse> page = new PageImpl<>(
+                List.of(employeeResponse),
+                PageRequest.of(0, 10),
+                1
+        );
+
+        when(userService.findAll(any(UserFilterRequest.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        mockMvc.perform(get(BASE_URL)
+                        .param("includeInactive", "true")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1));
+
+        verify(userService).findAll(
+                argThat(filter -> Boolean.TRUE.equals(filter.getIncludeInactive())),
+                any(Pageable.class)
+        );
+    }
+
+    @Test
+    void shouldFilterUsersBySearch() throws Exception {
+        Page<UserResponse> page = new PageImpl<>(
+                List.of(employeeResponse),
+                PageRequest.of(0, 10),
+                1
+        );
+
+        when(userService.findAll(any(UserFilterRequest.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        mockMvc.perform(get(BASE_URL)
+                        .param("search", "employee")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].email").value("employee@ubs.com"));
+
+        verify(userService).findAll(
+                argThat(filter -> "employee".equals(filter.getSearch())),
+                any(Pageable.class)
+        );
+    }
+
+    @Test
+    void shouldFilterUsersByRole() throws Exception {
+        Page<UserResponse> page = new PageImpl<>(
+                List.of(managerResponse),
+                PageRequest.of(0, 10),
+                1
+        );
+
+        when(userService.findAll(any(UserFilterRequest.class), any(Pageable.class)))
+                .thenReturn(page);
+
+        mockMvc.perform(get(BASE_URL)
+                        .param("role", "MANAGER")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].email").value("manager@ubs.com"));
+
+        verify(userService).findAll(
+                argThat(filter -> filter.getRole() == UserRole.MANAGER),
+                any(Pageable.class)
+        );
+    }
 }

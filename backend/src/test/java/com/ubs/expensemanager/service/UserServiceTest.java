@@ -1,6 +1,7 @@
 package com.ubs.expensemanager.service;
 
 import com.ubs.expensemanager.dto.request.UserCreateRequest;
+import com.ubs.expensemanager.dto.request.UserFilterRequest;
 import com.ubs.expensemanager.dto.request.UserUpdateRequest;
 import com.ubs.expensemanager.dto.response.UserResponse;
 import com.ubs.expensemanager.exception.ManagerRequiredException;
@@ -15,8 +16,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -140,6 +146,77 @@ class UserServiceTest {
         assertThrows(
                 ResourceNotFoundException.class,
                 () -> userService.findById(99L)
+        );
+    }
+
+    @Test
+    void findAll_withoutFilters_callsRepositoryWithSpecification() {
+        UserFilterRequest filters = new UserFilterRequest();
+
+        Page<User> page = new PageImpl<>(List.of(employee));
+
+        when(repository.findAll(
+                any(org.springframework.data.jpa.domain.Specification.class),
+                any(Pageable.class)
+        )).thenReturn(page);
+
+        Page<UserResponse> result =
+                userService.findAll(filters, PageRequest.of(0, 10));
+
+        assertEquals(1, result.getTotalElements());
+
+        verify(repository).findAll(
+                any(org.springframework.data.jpa.domain.Specification.class),
+                any(Pageable.class)
+        );
+    }
+
+
+    @Test
+    void findAll_withRoleFilter_callsRepositoryWithSpecification() {
+        UserFilterRequest filters = new UserFilterRequest();
+        filters.setRole(UserRole.EMPLOYEE);
+
+        Page<User> page = new PageImpl<>(List.of(employee));
+
+        when(repository.findAll(
+                any(org.springframework.data.jpa.domain.Specification.class),
+                any(Pageable.class)
+        )).thenReturn(page);
+
+        Page<UserResponse> result =
+                userService.findAll(filters, PageRequest.of(0, 10));
+
+        assertEquals(1, result.getContent().size());
+        assertEquals("ROLE_" + UserRole.EMPLOYEE.name(), result.getContent().get(0).getRole());
+
+        verify(repository).findAll(
+                any(org.springframework.data.jpa.domain.Specification.class),
+                any(Pageable.class)
+        );
+    }
+
+    @Test
+    void findAll_excludingInactiveUsers_callsRepository() {
+        UserFilterRequest filters = new UserFilterRequest();
+        filters.setIncludeInactive(false);
+
+        Page<User> page = new PageImpl<>(List.of(employee));
+
+        when(repository.findAll(
+                any(org.springframework.data.jpa.domain.Specification.class),
+                any(Pageable.class)
+        )).thenReturn(page);
+
+        Page<UserResponse> result =
+                userService.findAll(filters, PageRequest.of(0, 10));
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+
+        verify(repository).findAll(
+                any(org.springframework.data.jpa.domain.Specification.class),
+                any(Pageable.class)
         );
     }
 
