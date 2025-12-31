@@ -1,0 +1,75 @@
+import { getMenuItemsForRole } from '@/config/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MenuItem } from './MenuItem';
+import { Logo } from './Logo';
+
+interface SidebarProps {
+  className?: string;
+}
+
+export const Sidebar = ({ className }: SidebarProps) => {
+  const { user } = useAuth();
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  if (!user) {
+    return null;
+  }
+
+  const menuItems = getMenuItemsForRole(user.role);
+
+  const handleLogoClick = () => {
+    navigate('/dashboard');
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    if (isProfileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () =>
+        document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isProfileMenuOpen]);
+
+  return (
+    <aside
+      className={cn(
+        'fixed left-0 top-0 z-40 h-screen w-64 border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900',
+        className
+      )}
+    >
+      <div className='flex h-16 items-center justify-center border-b border-gray-200 px-6 dark:border-gray-800'>
+        <button
+          onClick={handleLogoClick}
+          className='bg-transparent border-none p-0 cursor-pointer hover:opacity-80 transition-opacity'
+          aria-label='Go to dashboard'
+        >
+          <Logo className='h-10 pb-1' />
+        </button>
+      </div>
+
+      <nav className='flex-1 space-y-1 px-3 py-4'>
+        {menuItems.map((item) => (
+          <MenuItem
+            key={item.id}
+            label={item.label}
+            path={item.path}
+            icon={item.icon}
+          />
+        ))}
+      </nav>
+    </aside>
+  );
+};

@@ -7,5 +7,6 @@ export async function getDepartments(): Promise<Department[]> {
     throw new Error('Failed to fetch departments')
   }
 
-  return response.json()
+  const data: Department[] = await response.json()
+  return data
 }

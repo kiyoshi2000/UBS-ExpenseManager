@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Department } from "@/types/department";
+import { DepartmentFormData } from "@/utils/validation";
 import {
   listDepartments,
   createDepartment,
@@ -45,7 +46,7 @@ export const DepartmentPage = () => {
     loadDepartments();
   }, []);
 
-  async function handleSubmit(data: any) {
+  async function handleSubmit(data: DepartmentFormData) {
     setError(null);
     try {
       if (editing) {
