@@ -41,7 +41,7 @@ public class UserController {
      * <p> Supports filtering by:
      * <ul>
      *   <li>{@code role} - filter by user role</li>
-     *   <li>{@code include_inactive} - include inactive users (default: false)</li>
+     *   <li>{@code includeInactive} - include inactive users (default: false)</li>
      * </ul>
      * </p>
      *

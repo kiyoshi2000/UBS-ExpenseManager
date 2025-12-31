@@ -107,6 +107,7 @@ public class GlobalExceptionHandler {
      * @return a {@link ErrorResponse} with status 400 (Bad Request)
      */
     @ExceptionHandler({
+            ResourceNotFoundException.class,
             ManagerRequiredException.class,
             InvalidManagerRoleException.class,
             SelfManagerException.class,

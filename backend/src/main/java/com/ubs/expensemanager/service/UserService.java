@@ -98,27 +98,18 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "There is no user with id " + id));
 
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            if (repository.existsByEmailAndIdNot(request.getEmail(), id)) {
-                throw new UserExistsException("Email already in use");
-            }
-            user.setEmail(request.getEmail());
+        if (!user.getEmail().equals(request.getEmail())) {
+            throw new IllegalArgumentException("Email cannot be changed");
         }
 
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        if (user.getRole() != request.getRole()) {
+            throw new IllegalArgumentException("Role cannot be changed");
         }
 
-        UserRole newRole = request.getRole() != null ? request.getRole() : user.getRole();
-        if (request.getRole() != null) {
-            user.setRole(request.getRole());
-        }
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setName(request.getName());
 
-        if (request.getName() != null && !request.getName().isBlank()) {
-            user.setName(request.getName());
-        }
-
-        validateAndSetManager(user, request.getManagerEmail(), newRole);
+        validateAndSetManager(user, request.getManagerEmail(), user.getRole());
 
         User updatedUser = repository.save(user);
         return UserResponse.fromEntity(updatedUser);
