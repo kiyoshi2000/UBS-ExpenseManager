@@ -8,7 +8,6 @@ import { DashboardPage } from './pages/Dashboard/DashboardPage';
 import { ExpensesPage } from './pages/Expenses/ExpensesPage';
 import { ExpensesReport } from './pages/ExpensesReport/ExpensesReport';
 import { LoginPage } from './pages/Login';
-import { DepartmentPage } from './pages/Department';
 import { ProfilePage } from './pages/Profile/ProfilePage';
 import { UsersPage } from './pages/Users/UsersPage';
 
@@ -31,7 +30,6 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path='/departments' element={<DepartmentPage/>} />
           <Route path='/approvals' element={<ApprovalsPage />} />
           <Route path='/dashboard' element={<DashboardPage />} />
           <Route path='/expenses' element={<ExpensesPage />} />

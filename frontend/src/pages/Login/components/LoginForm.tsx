@@ -1,30 +1,14 @@
-// src/pages/Login/components/LoginForm.tsx
-
-/**
- * LoginForm
- *
- * Handles the authentication workflow:
- * - Form state and validation (react-hook-form + zod)
- * - Submission to the backend authentication endpoint
- * - Error handling and user feedback
- *
- * On successful authentication:
- * - Stores JWT token in localStorage
- * - Stores user information (id, email, role)
- * - Redirects the user to a protected route
- */
-
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { api } from '@/services/api';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { login } from "@/services/auth.service";
+import { z } from 'zod';
 
 import {
   Card,
@@ -75,7 +59,10 @@ export const LoginForm = () => {
   const onSubmit = async (data: LoginFormData) => {
     setLoginError(null);
     try {
-      const { data: result } = await login(data);
+      const { data: result } = await api.post<LoginResponse>(
+        '/api/auth/login',
+        data
+      );
 
       localStorage.setItem('jwt_token', result.token);
       localStorage.setItem('user', JSON.stringify(result.user));
