@@ -1,7 +1,19 @@
 import { LoginForm } from "./components/LoginForm";
 import { Logo } from "@/components/Navigation";
 import { useTheme } from "@/hooks/useTheme";
-import ubsLogin from "@/assets/ubs-login.jpeg";
+
+/**
+ * LoginPage
+ *
+ * Responsible for rendering the login screen layout.
+ *
+ * This component:
+ * - Defines the page structure and branding (UBS visual identity)
+ * - Delegates all authentication logic to LoginForm
+ *
+ * Business logic (API calls, validation, authentication)
+ * must NOT be implemented here.
+ */
 
 export const LoginPage = () => {
   useTheme();
