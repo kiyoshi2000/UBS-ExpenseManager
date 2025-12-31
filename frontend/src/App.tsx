@@ -1,16 +1,22 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthenticatedLayout } from '@/components/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { PublicRoute } from '@/components/PublicRoute';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { AnalyticsPage } from './pages/Analytics/AnalyticsPage';
+import { ApprovalsPage } from './pages/Approvals/ApprovalsPage';
+import { DashboardPage } from './pages/Dashboard/DashboardPage';
+import { ExpensesPage } from './pages/Expenses/ExpensesPage';
+import { ExpensesReport } from './pages/ExpensesReport/ExpensesReport';
 import { LoginPage } from './pages/Login';
-import { DashboardPage } from './pages/Dashboard';
-import { DepartmentPage } from './pages/Department';
+import { ProfilePage } from './pages/Profile/ProfilePage';
+import { UsersPage } from './pages/Users/UsersPage';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route
-          path="/"
+          path='/'
           element={
             <PublicRoute>
               <LoginPage />
@@ -18,24 +24,20 @@ function App() {
           }
         />
         <Route
-          path="/dashboard"
           element={
-            <ProtectedRoute /*allowedRoles={['ROLE_FINANCE']*/>
-              <DashboardPage />
+            <ProtectedRoute>
+              <AuthenticatedLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/departments"
-          element={
-            <ProtectedRoute /*allowedRoles={['ROLE_FINANCE']*/>
-              <DepartmentPage />
-            </ProtectedRoute>
-          }
-        />
-
-        
-
+        >
+          <Route path='/approvals' element={<ApprovalsPage />} />
+          <Route path='/dashboard' element={<DashboardPage />} />
+          <Route path='/expenses' element={<ExpensesPage />} />
+          <Route path='/expenses-report' element={<ExpensesReport />} />
+          <Route path='/analytics' element={<AnalyticsPage />} />
+          <Route path='/users' element={<UsersPage />} />
+          <Route path='/profile' element={<ProfilePage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
