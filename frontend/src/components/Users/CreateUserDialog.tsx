@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { listDepartments } from "@/services/department.service";
+import { Department } from "@/types/department";
+import { getManagersByDepartment, User } from "@/api/user.api";
 import {
   Dialog,
   DialogContent,
@@ -35,9 +38,44 @@ export const CreateUserDialog = ({
     email: "",
     role: "",
     managerEmail: "",
+    departmentId: "",
   });
 
   const [errors, setErrors] = useState<UserValidationErrors>({});
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [managers, setManagers] = useState<User[]>([]);
+
+  // Load departments on mount
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        const response = await listDepartments();
+        setDepartments(response.data);
+      } catch (error) {
+        console.error("Error loading departments:", error);
+      }
+    };
+    loadDepartments();
+  }, []);
+
+  // Load managers when department changes
+  useEffect(() => {
+    const loadManagers = async () => {
+      if (!formData.departmentId) {
+        setManagers([]);
+        return;
+      }
+      
+      try {
+        const managersList = await getManagersByDepartment(Number(formData.departmentId));
+        setManagers(managersList);
+      } catch (error) {
+        console.error("Error loading managers:", error);
+        setManagers([]);
+      }
+    };
+    loadManagers();
+  }, [formData.departmentId]);
 
   // Reset form when dialog closes successfully
   useEffect(() => {
@@ -73,10 +111,6 @@ export const CreateUserDialog = ({
     if (field === "role") {
       if (value) {
         delete newErrors.role;
-        // If changing from employee, clear manager email error if not needed
-        if (value !== "employee") {
-          delete newErrors.managerEmail;
-        }
       } else {
         newErrors.role = "Role is required";
       }
@@ -84,13 +118,15 @@ export const CreateUserDialog = ({
     
     if (field === "managerEmail") {
       if (formData.role === "employee") {
-        const emailError = validateEmail(value);
-        if (emailError) {
-          newErrors.managerEmail = emailError === "Email is required" 
-            ? "Manager email is required for employees" 
-            : "Invalid manager email";
+        if (!value) {
+          newErrors.managerEmail = "Manager is required for employees";
         } else {
-          delete newErrors.managerEmail;
+          const emailError = validateEmail(value);
+          if (emailError) {
+            newErrors.managerEmail = "Invalid manager email";
+          } else {
+            delete newErrors.managerEmail;
+          }
         }
       } else if (value) {
         const emailError = validateEmail(value);
@@ -101,6 +137,14 @@ export const CreateUserDialog = ({
         }
       } else {
         delete newErrors.managerEmail;
+      }
+    }
+    
+    if (field === "departmentId") {
+      if (value) {
+        delete newErrors.departmentId;
+      } else {
+        newErrors.departmentId = "Department is required";
       }
     }
     
@@ -118,6 +162,7 @@ export const CreateUserDialog = ({
       email: "",
       role: "",
       managerEmail: "",
+      departmentId: "",
     });
     setErrors({});
   };
@@ -233,24 +278,59 @@ export const CreateUserDialog = ({
             )}
           </div>
 
-          {/* Manager Email */}
+          {/* Department */}
+          <div className="space-y-2">
+            <Label htmlFor="departmentId" className="text-sm font-medium">
+              Department <span className="text-red-600">*</span>
+            </Label>
+            <select
+              id="departmentId"
+              value={formData.departmentId}
+              onChange={(e) =>
+                handleInputChange("departmentId", e.target.value)
+              }
+              className={`file:text-foreground flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus:outline-none focus:border-ring focus:ring-ring/50 focus:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:focus:ring-ring/50 ${
+                errors.departmentId ? "border-destructive aria-invalid:border-destructive" : "border-input"
+              }`}
+            >
+              <option value="">Select a department</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+            {errors.departmentId && (
+              <p className="text-sm text-red-600">{errors.departmentId}</p>
+            )}
+          </div>
+
+          {/* Manager */}
           <div className="space-y-2">
             <Label htmlFor="managerEmail" className="text-sm font-medium">
-              Manager Email{" "}
+              Manager{" "}
               {formData.role === "employee" && (
                 <span className="text-red-600">*</span>
               )}
             </Label>
-            <Input
+            <select
               id="managerEmail"
-              type="email"
-              placeholder="manager@ubs.com"
               value={formData.managerEmail}
               onChange={(e) =>
                 handleInputChange("managerEmail", e.target.value)
               }
-              className={errors.managerEmail ? "border-red-500" : ""}
-            />
+              disabled={!formData.departmentId}
+              className={`file:text-foreground flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus:outline-none focus:border-ring focus:ring-ring/50 focus:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:focus:ring-ring/50 ${
+                errors.managerEmail ? "border-destructive aria-invalid:border-destructive" : "border-input"
+              }`}
+            >
+              <option value="">{!formData.departmentId ? "Select a department first" : "Select a manager (optional)"}</option>
+              {managers.map((manager) => (
+                <option key={manager.id} value={manager.email}>
+                  {manager.name} ({manager.email})
+                </option>
+              ))}
+            </select>
             {errors.managerEmail && (
               <p className="text-sm text-red-600">{errors.managerEmail}</p>
             )}

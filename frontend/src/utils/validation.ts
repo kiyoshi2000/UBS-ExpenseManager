@@ -37,6 +37,7 @@ export interface CreateUserFormData {
   email: string;
   role: "employee" | "manager" | "finance" | "";
   managerEmail: string;
+  departmentId: string;
 }
 
 /**
@@ -74,9 +75,14 @@ export const validateUserForm = (
     errors.role = "Role is required";
   }
 
+  // Department validation
+  if (!formData.departmentId) {
+    errors.departmentId = "Department is required";
+  }
+
   // Manager email validation
   if (formData.role === "employee" && !formData.managerEmail.trim()) {
-    errors.managerEmail = "Manager email is required for employees";
+    errors.managerEmail = "Manager is required for employees";
   } else if (formData.managerEmail.trim()) {
     const managerEmailError = validateEmail(formData.managerEmail);
     if (managerEmailError) {

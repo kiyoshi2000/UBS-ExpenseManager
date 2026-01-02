@@ -8,13 +8,21 @@ import { EditUserDialog } from "@/components/Users/EditUserDialog";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { Switch } from "@/components/ui/switch";
 import { TablePagination } from "@/components/Pagination";
-import api from "@/services/api";
 import { CreateUserFormData } from "@/utils/validation";
 import { getErrorMessage } from "@/types/api-error";
+import {
+  getUsers,
+  createUser,
+  updateUser,
+  deactivateUser,
+  reactivateUser,
+  User as ApiUser,
+} from "@/api/user.api";
 
 interface EditUserFormData {
   name: string;
   managerEmail: string;
+  departmentId: string;
 }
 
 interface User {
@@ -29,32 +37,6 @@ interface User {
   };
   department: string;
   status: string;
-}
-
-interface ApiUser {
-  id: number;
-  email: string;
-  role: string;
-  name: string;
-  active: boolean;
-  manager?: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  department?: string;
-}
-
-interface PageableResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  number: number;
-  size: number;
-  first: boolean;
-  last: boolean;
-  numberOfElements: number;
-  empty: boolean;
 }
 
 export const UsersPage = () => {
@@ -95,18 +77,21 @@ export const UsersPage = () => {
       
       // Spring Boot pages are 0-indexed, but UI uses 1-indexed
       const pageNumber = page - 1;
-      const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
-      const response = await api.get<PageableResponse<ApiUser>>(
-        `/api/users?includeInactive=true&page=${pageNumber}&size=${size}&sort=name,asc${searchParam}`
-      );
+      
+      const response = await getUsers({
+        page: pageNumber,
+        size,
+        sort: ["active,desc", "name,asc"],
+        search: search || undefined,
+        includeInactive: true,
+      });
       
       // Map API payload to local User shape
-      const usersWithDepartment: User[] = response.data.content.map((u: ApiUser) => ({
+      const usersWithDepartment: User[] = response.content.map((u: ApiUser) => ({
         id: u.id,
         name: u.name,
         email: u.email,
-        // API currently does not return department — fill placeholder
-        department: u.department || "NOT_IMPLEMENTED",
+        department: u.department?.name || "-",
         manager: u.manager ?? undefined,
         role: u.role,
         // Map boolean active -> status string used by table
@@ -114,8 +99,8 @@ export const UsersPage = () => {
       }));
 
       setUsers(usersWithDepartment);
-      setTotalPages(response.data.totalPages);
-      setTotalElements(response.data.totalElements);
+      setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements);
     } catch (err) {
       console.error("Error fetching users:", err);
       setError("Failed to load users");
@@ -131,15 +116,15 @@ export const UsersPage = () => {
 
   const handleCreateUser = async (data: CreateUserFormData): Promise<void> => {
     try {
-      const payload = {
+      await createUser({
         email: data.email,
         password: "123456", // Default password for registration
         name: data.name,
         role: data.role.toUpperCase(),
         managerEmail: data.managerEmail || undefined,
-      };
+        departmentId: data.departmentId ? parseInt(data.departmentId) : undefined,
+      });
 
-      await api.post("/api/auth/register", payload);
       setOpenCreateDialog(false);
       setCreateErrorMessage("");
       await fetchUsers(currentPage, 10, searchQuery);
@@ -164,15 +149,15 @@ export const UsersPage = () => {
       // Remove ROLE_ prefix if present
       const roleValue = selectedUser.role.replace(/^ROLE_/, "");
 
-      const payload = {
+      await updateUser(selectedUser.id, {
         email: selectedUser.email,
         password: "123456", // Using default password for updates
         role: roleValue,
         name: data.name,
         managerEmail: data.managerEmail || undefined,
-      };
-
-      await api.put(`/api/users/${selectedUser.id}`, payload);
+        departmentId: data.departmentId ? parseInt(data.departmentId) : undefined,
+      });
+      
       setOpenEditDialog(false);
       setEditErrorMessage("");
       // Refresh users list after update
@@ -198,7 +183,7 @@ export const UsersPage = () => {
   const handleConfirmReactivate = async (): Promise<void> => {
     if (userToReactivate) {
       try {
-        await api.patch(`/api/users/${userToReactivate.id}/reactivate`, {});
+        await reactivateUser(userToReactivate.id);
         setOpenReactivateDialog(false);
         await fetchUsers(currentPage, 10, searchQuery);
         setOpenReactivateSuccessDialog(true);
@@ -215,7 +200,7 @@ export const UsersPage = () => {
   const handleConfirmDelete = async (): Promise<void> => {
     if (userToDelete) {
       try {
-        await api.delete(`/api/users/${userToDelete.id}`);
+        await deactivateUser(userToDelete.id);
         setOpenDeleteDialog(false);
         await fetchUsers(currentPage, 10, searchQuery);
         setOpenDeleteSuccessDialog(true);
@@ -319,6 +304,7 @@ export const UsersPage = () => {
       icon: <Edit className="h-4 w-4" />,
       onClick: handleEdit,
       color: "blue",
+      shouldShow: (row) => row.status === "Active",
     },
   ];
 
