@@ -63,4 +63,15 @@ public class UserSpecifications {
         };
     }
 
+    /**
+     * Creates a specification to filter users by department ID.
+     *
+     * @param departmentId the department ID to filter by, or {@code null} to not apply this filter
+     * @return a specification that matches users belonging to the specified department, or {@code null} if departmentId is {@code null}
+     */
+    public static Specification<User> withDepartmentId(Long departmentId) {
+        return (root, query, cb) ->
+                departmentId == null ? null : cb.equal(root.get("department").get("id"), departmentId);
+    }
+
 }

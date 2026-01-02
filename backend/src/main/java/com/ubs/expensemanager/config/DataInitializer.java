@@ -1,12 +1,15 @@
 package com.ubs.expensemanager.config;
 
+import com.ubs.expensemanager.model.Department;
 import com.ubs.expensemanager.model.User;
 import com.ubs.expensemanager.model.UserRole;
+import com.ubs.expensemanager.repository.DepartmentRepository;
 import com.ubs.expensemanager.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -20,10 +23,14 @@ import java.util.List;
 public class DataInitializer {
 
     private final UserRepository userRepository;
+    private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public DataInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public DataInitializer(UserRepository userRepository, 
+                          DepartmentRepository departmentRepository,
+                          PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.departmentRepository = departmentRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -33,18 +40,31 @@ public class DataInitializer {
      */
     @PostConstruct
     public void init() {
+        // Create IT department if it doesn't exist
+        Department itDepartment = departmentRepository.findByNameIgnoreCase("IT")
+                .orElseGet(() -> departmentRepository.save(
+                        Department.builder()
+                                .name("IT")
+                                .monthlyBudget(new BigDecimal("50000.00"))
+                                .dailyBudget(new BigDecimal("2000.00"))
+                                .currency("USD")
+                                .build()
+                ));
+
         List<User> usersWithoutManager = List.of(
                 User.builder()
                         .email("finance@ubs.com")
                         .password(passwordEncoder.encode("123456"))
                         .role(UserRole.FINANCE)
                         .name("Finance User")
+                        .department(itDepartment)
                         .build(),
                 User.builder()
                         .email("manager@ubs.com")
                         .password(passwordEncoder.encode("123456"))
                         .role(UserRole.MANAGER)
                         .name("Manager User")
+                        .department(itDepartment)
                         .build()
         );
 
@@ -64,6 +84,7 @@ public class DataInitializer {
                         .password(passwordEncoder.encode("123456"))
                         .role(UserRole.EMPLOYEE)
                         .manager(manager)
+                        .department(itDepartment)
                         .build(),
                 User.builder()
                         .name("Employee Two")
@@ -71,6 +92,7 @@ public class DataInitializer {
                         .password(passwordEncoder.encode("123456"))
                         .role(UserRole.EMPLOYEE)
                         .manager(manager)
+                        .department(itDepartment)
                         .build()
         );
 

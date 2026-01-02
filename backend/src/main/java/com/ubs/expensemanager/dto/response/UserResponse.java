@@ -21,7 +21,18 @@ public class UserResponse {
     private boolean active;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    private DepartmentInfo department;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private ManagerInfo manager;
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class DepartmentInfo {
+        private Long id;
+        private String name;
+    }
 
     @Getter
     @Builder
@@ -43,6 +54,10 @@ public class UserResponse {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role("ROLE_" + user.getRole().name())
+                .department(user.getDepartment() != null ? DepartmentInfo.builder()
+                        .id(user.getDepartment().getId())
+                        .name(user.getDepartment().getName())
+                        .build() : null)
                 .manager(user.getManager() != null ? ManagerInfo.builder()
                         .id(user.getManager().getId())
                         .name(user.getManager().getName())

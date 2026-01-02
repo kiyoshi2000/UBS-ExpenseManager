@@ -5,8 +5,10 @@ import com.ubs.expensemanager.dto.request.UserUpdateRequest;
 import com.ubs.expensemanager.dto.request.UserCreateRequest;
 import com.ubs.expensemanager.dto.response.UserResponse;
 import com.ubs.expensemanager.exception.*;
+import com.ubs.expensemanager.model.Department;
 import com.ubs.expensemanager.model.User;
 import com.ubs.expensemanager.model.UserRole;
+import com.ubs.expensemanager.repository.DepartmentRepository;
 import com.ubs.expensemanager.repository.UserRepository;
 import com.ubs.expensemanager.repository.specification.UserSpecifications;
 import jakarta.transaction.Transactional;
@@ -26,7 +28,22 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository repository;
+    private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
+
+    /**
+     * Validates and assigns a department to the user.
+     *
+     * @param user the user being created or updated
+     * @param departmentId the ID of the department to assign
+     * @throws ResourceNotFoundException if no department is found with the given ID
+     */
+    private void validateAndSetDepartment(User user, Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Department not found with id: " + departmentId));
+        user.setDepartment(department);
+    }
 
     /**
      * Validates whether a manager can be associated with the given user and,
@@ -87,6 +104,7 @@ public class UserService {
                 .name(request.getName())
                 .build();
 
+        validateAndSetDepartment(user, request.getDepartmentId());
         validateAndSetManager(user, request.getManagerEmail(), request.getRole());
 
         return repository.save(user);
@@ -111,6 +129,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setName(request.getName());
 
+        validateAndSetDepartment(user, request.getDepartmentId());
         validateAndSetManager(user, request.getManagerEmail(), user.getRole());
 
         User updatedUser = repository.save(user);
@@ -123,6 +142,7 @@ public class UserService {
         spec = spec.and(UserSpecifications.withRole(filters.getRole()));
         spec = spec.and(UserSpecifications.isActive(filters.getIncludeInactive()));
         spec = spec.and(UserSpecifications.nameOrEmailContains(filters.getSearch()));
+        spec = spec.and(UserSpecifications.withDepartmentId(filters.getDepartmentId()));
 
         return repository.findAll(spec, pageable).map(UserResponse::fromEntity);
     }

@@ -44,9 +44,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String name;
 
-//    @ManyToOne
-//    @JoinColumn(name = "department_id")
-//    private Department department;
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
 
     @ManyToOne
     @JoinColumn(name = "manager_id")

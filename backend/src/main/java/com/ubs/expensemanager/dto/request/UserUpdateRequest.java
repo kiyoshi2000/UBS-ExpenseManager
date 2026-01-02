@@ -32,6 +32,10 @@ public class UserUpdateRequest {
     @Schema(description = "User name", example = "Carlos")
     private String name;
 
+    @NotNull(message = "departmentId is required")
+    @Schema(description = "Department ID", example = "1")
+    private Long departmentId;
+
     @Email
     @Schema(description = "Email of the manager (optional, required only for EMPLOYEE role)",
             example = "manager@ubs.com")

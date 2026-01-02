@@ -17,4 +17,7 @@ public class UserFilterRequest {
 
     // search name or email
     private String search;
+
+    // filter by department ID
+    private Long departmentId;
 }
