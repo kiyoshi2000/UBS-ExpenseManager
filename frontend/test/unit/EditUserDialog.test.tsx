@@ -89,6 +89,12 @@ describe('EditUserDialog', () => {
       expect(screen.getByLabelText(/^role/i)).toHaveValue('EMPLOYEE');
       expect(screen.getByLabelText(/name/i)).toHaveValue('John Doe');
     });
+
+    // Also verify department and manager are loaded
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^department/i)).toHaveValue('1');
+      expect(screen.getByLabelText(/^manager/i)).toHaveValue('manager1@ubs.com');
+    });
   });
 
   it('displays email and role as read-only fields', async () => {
@@ -191,6 +197,17 @@ describe('EditUserDialog', () => {
 
     await waitFor(() => expect(screen.getByLabelText(/name/i)).toBeInTheDocument());
 
+    // Wait for department and manager fields to load
+    await waitFor(() => {
+      const departmentSelect = screen.getByLabelText(/^department/i);
+      expect(departmentSelect).toHaveValue('1');
+    });
+
+    await waitFor(() => {
+      const managerSelect = screen.getByLabelText(/^manager/i);
+      expect(managerSelect).toHaveValue('manager1@ubs.com');
+    });
+
     const nameInput = screen.getByLabelText(/name/i);
     await user.clear(nameInput);
     await user.type(nameInput, 'Jane Smith');
@@ -270,27 +287,49 @@ describe('EditUserDialog', () => {
 
     render(<EditUserDialog {...defaultProps} user={managerUser} onSubmit={onSubmit} />);
 
-    await waitFor(() => expect(screen.getByLabelText(/^manager/i)).toBeInTheDocument());
+    // Wait for form to be fully loaded including manager
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^name/i)).toHaveValue('John Doe');
+    });
 
     const managerSelect = screen.getByLabelText(/^manager/i);
+    
+    // Verify initial manager is set
+    await waitFor(() => {
+      expect(managerSelect).toHaveValue('manager1@ubs.com');
+    });
+    
+    // Select empty option to clear manager
     await user.selectOptions(managerSelect, '');
 
+    // Wait for submit button to be enabled
     const submitButton = screen.getByRole('button', { name: /save changes/i });
     await waitFor(() => expect(submitButton).toBeEnabled());
+    
+    // Submit the form
     await user.click(submitButton);
 
-    expect(onSubmit).toHaveBeenCalledWith({
-      name: 'John Doe',
-      departmentId: '1',
-      managerEmail: '',
-    });
+    // Verify the form was submitted with empty manager
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'John Doe',
+        departmentId: '1',
+        managerEmail: '',
+      })
+    );
   });
 
   it('resets form data when dialog closes and reopens', async () => {
     const user = userEvent.setup();
     const { rerender } = render(<EditUserDialog {...defaultProps} />);
 
-    await waitFor(() => expect(screen.getByLabelText(/name/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByLabelText(/name/i)).toHaveValue('John Doe'));
+
+    // Wait for all fields to load initially
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^manager/i)).toHaveValue('manager1@ubs.com');
+    });
 
     // Modify the name
     const nameInput = screen.getByLabelText(/name/i);
@@ -303,8 +342,14 @@ describe('EditUserDialog', () => {
     // Reopen dialog
     rerender(<EditUserDialog {...defaultProps} open={true} />);
 
+    // Wait for form to reset
     await waitFor(() => {
       expect(screen.getByLabelText(/name/i)).toHaveValue('John Doe');
+    });
+
+    // Verify manager also reset
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^manager/i)).toHaveValue('manager1@ubs.com');
     });
   });
 });
