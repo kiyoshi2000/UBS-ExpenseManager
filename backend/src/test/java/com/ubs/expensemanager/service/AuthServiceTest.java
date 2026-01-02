@@ -74,6 +74,7 @@ class AuthServiceTest {
                 .password("password")
                 .name("Employee")
                 .role(UserRole.EMPLOYEE)
+                .departmentId(1L)
                 .managerEmail("manager@ubs.com")
                 .build();
 

@@ -7,8 +7,10 @@ import com.ubs.expensemanager.dto.response.UserResponse;
 import com.ubs.expensemanager.exception.ManagerRequiredException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
 import com.ubs.expensemanager.exception.UserExistsException;
+import com.ubs.expensemanager.model.Department;
 import com.ubs.expensemanager.model.User;
 import com.ubs.expensemanager.model.UserRole;
+import com.ubs.expensemanager.repository.DepartmentRepository;
 import com.ubs.expensemanager.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,21 +39,34 @@ class UserServiceTest {
     UserRepository repository;
 
     @Mock
+    DepartmentRepository departmentRepository;
+
+    @Mock
     PasswordEncoder passwordEncoder;
 
     @InjectMocks
     UserService userService;
 
+    Department itDepartment;
     User manager;
     User employee;
 
     @BeforeEach
     void setUp() {
+        itDepartment = Department.builder()
+                .id(1L)
+                .name("IT")
+                .monthlyBudget(new BigDecimal("50000.00"))
+                .dailyBudget(new BigDecimal("2000.00"))
+                .currency("USD")
+                .build();
+
         manager = User.builder()
                 .id(1L)
                 .email("manager@ubs.com")
                 .role(UserRole.MANAGER)
                 .name("Manager")
+                .department(itDepartment)
                 .build();
 
         employee = User.builder()
@@ -59,6 +75,7 @@ class UserServiceTest {
                 .role(UserRole.EMPLOYEE)
                 .name("Employee")
                 .manager(manager)
+                .department(itDepartment)
                 .build();
     }
 
@@ -69,10 +86,12 @@ class UserServiceTest {
                 .password("123")
                 .name("Employee")
                 .role(UserRole.EMPLOYEE)
+                .departmentId(1L)
                 .managerEmail("manager@ubs.com")
                 .build();
 
         when(repository.existsByEmail(request.getEmail())).thenReturn(false);
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(itDepartment));
         when(repository.findByEmail("manager@ubs.com")).thenReturn(Optional.of(manager));
         when(passwordEncoder.encode("123")).thenReturn("hashed");
         when(repository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -81,6 +100,7 @@ class UserServiceTest {
 
         assertEquals(UserRole.EMPLOYEE, saved.getRole());
         assertEquals(manager, saved.getManager());
+        assertEquals(itDepartment, saved.getDepartment());
         assertEquals("hashed", saved.getPassword());
     }
 
@@ -90,9 +110,11 @@ class UserServiceTest {
                 .email("employee@ubs.com")
                 .password("123")
                 .role(UserRole.EMPLOYEE)
+                .departmentId(1L)
                 .build();
 
         when(repository.existsByEmail(request.getEmail())).thenReturn(false);
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(itDepartment));
 
         assertThrows(
                 ManagerRequiredException.class,
@@ -107,10 +129,12 @@ class UserServiceTest {
                 .password("123456")             // obrigatório
                 .role(UserRole.EMPLOYEE)        // obrigatório
                 .name("Employee Updated")
+                .departmentId(1L)
                 .managerEmail("manager@ubs.com") // pode mudar
                 .build();
 
         when(repository.findById(2L)).thenReturn(Optional.of(employee));
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(itDepartment));
         when(repository.findByEmail("manager@ubs.com")).thenReturn(Optional.of(manager));
         when(repository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -128,6 +152,7 @@ class UserServiceTest {
                 .password("123456")
                 .role(UserRole.EMPLOYEE)
                 .name("Employee")
+                .departmentId(1L)
                 .managerEmail("manager@ubs.com")
                 .build();
 

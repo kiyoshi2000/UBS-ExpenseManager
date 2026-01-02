@@ -132,6 +132,7 @@ class UserControllerTest {
                 .password("123456")
                 .role(UserRole.EMPLOYEE)
                 .name("Employee Updated")
+                .departmentId(1L)
                 .managerEmail("manager@ubs.com")
                 .build();
 
