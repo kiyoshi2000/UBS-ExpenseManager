@@ -47,14 +47,6 @@ export interface UserValidationErrors {
 }
 
 /**
- * Checks if a string is a valid email format
- */
-const isValidEmailFormat = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-/**
  * Validates the entire user form
  */
 export const validateUserForm = (
@@ -70,8 +62,11 @@ export const validateUserForm = (
   // Email validation
   if (!formData.email.trim()) {
     errors.email = "Email is required";
-  } else if (!isValidEmailFormat(formData.email)) {
-    errors.email = "Invalid email";
+  } else {
+    const emailError = validateEmail(formData.email);
+    if (emailError) {
+      errors.email = emailError;
+    }
   }
 
   // Role validation
@@ -82,8 +77,11 @@ export const validateUserForm = (
   // Manager email validation
   if (formData.role === "employee" && !formData.managerEmail.trim()) {
     errors.managerEmail = "Manager email is required for employees";
-  } else if (formData.managerEmail && !isValidEmailFormat(formData.managerEmail)) {
-    errors.managerEmail = "Invalid manager email";
+  } else if (formData.managerEmail.trim()) {
+    const managerEmailError = validateEmail(formData.managerEmail);
+    if (managerEmailError) {
+      errors.managerEmail = "Invalid manager email";
+    }
   }
 
   return errors;
@@ -97,3 +95,18 @@ export const hasValidationErrors = (
 ): boolean => {
   return Object.keys(errors).length > 0;
 };
+
+import { z } from "zod";
+/* =======================
+   DEPARTMENT
+======================= */
+
+export const departmentSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  monthlyBudget: z
+    .number()
+    .min(0, "Monthly budget must be positive"),
+  currency: z.string().min(1, "Currency is required"),
+});
+
+export type DepartmentFormData = z.infer<typeof departmentSchema>;

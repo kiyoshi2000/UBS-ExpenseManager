@@ -10,6 +10,7 @@ import { ExpensesReport } from './pages/ExpensesReport/ExpensesReport';
 import { LoginPage } from './pages/Login';
 import { ProfilePage } from './pages/Profile/ProfilePage';
 import { UsersPage } from './pages/Users/UsersPage';
+import { DepartmentPage } from './pages/Department';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
         >
           <Route path='/approvals' element={<ApprovalsPage />} />
           <Route path='/dashboard' element={<DashboardPage />} />
+          <Route path='/department' element={<DepartmentPage />} />
           <Route path='/expenses' element={<ExpensesPage />} />
           <Route path='/expenses-report' element={<ExpensesReport />} />
           <Route path='/analytics' element={<AnalyticsPage />} />

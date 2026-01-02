@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.lang.reflect.Field;
 import java.time.Instant;
@@ -164,6 +165,40 @@ public class GlobalExceptionHandler {
                 HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                 "Internal Server Error",
                 ex.getMessage(),
+                request.getServletPath(),
+                null
+        );
+    }
+
+    /**
+     * Handles business conflicts (e.g. duplicated department name).
+     */
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(
+            ConflictException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                HttpServletResponse.SC_CONFLICT, // 409
+                "Conflict",
+                ex.getMessage(),
+                request.getServletPath(),
+                null
+        );
+    }
+
+    /**
+     * Handles access denied errors when user lacks required permissions.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                HttpServletResponse.SC_FORBIDDEN, // 403
+                "Access denied",
+                "You do not have permission to perform this action",
                 request.getServletPath(),
                 null
         );
