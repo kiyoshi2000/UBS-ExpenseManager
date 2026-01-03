@@ -12,9 +12,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,12 +34,30 @@ import java.net.URI;
  * with detailed messages when input is invalid or credentials are incorrect.</p>
  */
 @Slf4j
-@AllArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "Authentication Endpoints")
 public class AuthController {
     private final AuthService authService;
+
+    @Value("${app.cookie.secure:true}")
+    private boolean secureCookie;
+
+    private static final String JWT_COOKIE_NAME = "jwt_token";
+    private static final int COOKIE_MAX_AGE = 86400; // 24 hours
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    private Cookie createJwtCookie(String token, int maxAge) {
+        Cookie cookie = new Cookie(JWT_COOKIE_NAME, token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(secureCookie);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAge);
+        return cookie;
+    }
 
     /**
      * Authenticates a user using email and password.
@@ -101,10 +122,14 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @Valid @RequestBody LoginRequest request
+            @Valid @RequestBody LoginRequest request,
+            HttpServletResponse httpResponse
     ) {
         log.info("Login attempt for email={}", request.getEmail());
         LoginResponse response = authService.login(request);
+
+        httpResponse.addCookie(createJwtCookie(response.getToken(), COOKIE_MAX_AGE));
+
         log.info("Login success for email={}", request.getEmail());
         return ResponseEntity.ok(response);
     }
@@ -174,15 +199,31 @@ public class AuthController {
     })
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(
-            @Valid @RequestBody UserCreateRequest request
+            @Valid @RequestBody UserCreateRequest request,
+            HttpServletResponse httpResponse
     ) {
         log.info("Registration attempt for email={}", request.getEmail());
         LoginResponse response = authService.register(request);
+
+        httpResponse.addCookie(createJwtCookie(response.getToken(), COOKIE_MAX_AGE));
+
         log.info("Registration success for email={}", request.getEmail());
 
         return ResponseEntity
                 .created(URI.create("/api/users/" + response.getUser().getId()))
                 .body(response);
+    }
+
+    @Operation(
+            summary = "User Logout",
+            description = "Logout the user and clear the authentication cookie"
+    )
+    @ApiResponse(responseCode = "200", description = "Logout successful")
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse httpResponse) {
+        log.info("Logout request received");
+        httpResponse.addCookie(createJwtCookie(null, 0));
+        return ResponseEntity.ok().build();
     }
 }
 
