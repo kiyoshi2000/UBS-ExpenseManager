@@ -46,6 +46,13 @@ export const navigationConfig: MenuItem[] = [
     allowedRoles: ['ROLE_FINANCE'],
   },
   {
+    id: 'department',
+    label: 'Department',
+    path: '/department',
+    icon: 'Building2',
+    allowedRoles: ['ROLE_FINANCE'],
+  },
+  {
     id: 'users',
     label: 'User Management',
     path: '/users',

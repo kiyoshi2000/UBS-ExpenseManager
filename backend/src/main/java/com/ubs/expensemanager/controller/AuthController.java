@@ -4,6 +4,7 @@ import com.ubs.expensemanager.dto.request.LoginRequest;
 import com.ubs.expensemanager.dto.request.UserCreateRequest;
 import com.ubs.expensemanager.dto.response.ErrorResponse;
 import com.ubs.expensemanager.dto.response.LoginResponse;
+import com.ubs.expensemanager.dto.response.UserResponse;
 import com.ubs.expensemanager.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -50,52 +51,32 @@ public class AuthController {
      * @throws jakarta.validation.ValidationException if input validation fails
      */
     @Operation(
-            summary = "User Login",
-            description = "Authenticate the user with email and password"
+            summary = "User login",
+            description = "Authenticates the user and returns authentication data"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Login successful"),
             @ApiResponse(
-                    responseCode = "400",
-                    description = "Validation error",
+                    responseCode = "200",
+                    description = "Login successful",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    name = "Validation Error",
-                                    value = """
-                                    {
-                                      "timestamp": "2025-12-20T15:05:29.519982678Z",
-                                      "status": 400,
-                                      "error": "Validation error",
-                                      "message": "Validation failed for one or more fields",
-                                      "path": "/api/auth/login",
-                                      "errors": {
-                                        "email": "must be a well-formed email address"
-                                      }
-                                    }
-                                    """
-                            )
+                            schema = @Schema(implementation = UserResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid request",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Invalid credentials",
+                    description = "Unauthorized",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    name = "Invalid Credentials",
-                                    value = """
-                                    {
-                                      "timestamp": "2025-12-20T15:04:06.098997078Z",
-                                      "status": 401,
-                                      "error": "Unauthorized",
-                                      "message": "Invalid Credentials",
-                                      "path": "/api/auth/login"
-                                    }
-                                    """
-                            )
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             )
     })
@@ -120,55 +101,32 @@ public class AuthController {
      * @return ResponseEntity with status 201 and LoginResponse body
      */
     @Operation(
-            summary = "User Registration",
-            description = "Register a new user in the system"
+            summary = "User registration",
+            description = "Creates a new user and returns authentication data"
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "201",
-                    description = "User created successfully"
+                    description = "User created successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginResponse.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Validation error",
+                    description = "Invalid request",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    name = "Validation Error",
-                                    value = """
-                                {
-                                  "timestamp": "2025-12-23T15:05:29.519982678Z",
-                                  "status": 400,
-                                  "error": "Validation error",
-                                  "message": "Validation failed for one or more fields",
-                                  "path": "/api/auth/register",
-                                  "errors": {
-                                    "email": "must be a well-formed email address"
-                                  }
-                                }
-                                """
-                            )
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "User already exists",
+                    description = "Conflict",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    name = "User Already Exists",
-                                    value = """
-                                {
-                                  "timestamp": "2025-12-23T15:04:06.098997078Z",
-                                  "status": 409,
-                                  "error": "Conflict",
-                                  "message": "The email 'finance@ubs.com' is already registered",
-                                  "path": "/api/auth/register"
-                                }
-                                """
-                            )
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             )
     })

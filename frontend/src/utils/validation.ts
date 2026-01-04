@@ -1,21 +1,21 @@
 /**
- * Valida se o email está preenchido e tem formato válido
+ * Validates if email is filled and has valid format
  */
 export const validateEmail = (email: string): string | null => {
   const trimmed = email.trim();
 
-  // Campo vazio
+  // Empty field
   if (!trimmed) {
-    return 'Email é obrigatório';
+    return 'Email is required';
   }
 
-  // Formato inválido
+  // Valid format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(trimmed)) {
-    return 'Formato de email inválido';
+    return 'Invalid email format';
   }
 
-  return null; // Sem erro
+  return null; // No error
 };
 
 /**
@@ -23,10 +23,83 @@ export const validateEmail = (email: string): string | null => {
  */
 export const validatePassword = (password: string): string | null => {
   if (!password) {
-    return 'Senha é obrigatória';
+    return 'Password is required';
   }
 
   return null; // Sem erro
+};
+
+/**
+ * User form data interface
+ */
+export interface CreateUserFormData {
+  name: string;
+  email: string;
+  role: "employee" | "manager" | "finance" | "";
+  managerEmail: string;
+  departmentId: string;
+}
+
+/**
+ * User validation errors interface
+ */
+export interface UserValidationErrors {
+  [key: string]: string;
+}
+
+/**
+ * Validates the entire user form
+ */
+export const validateUserForm = (
+  formData: CreateUserFormData
+): UserValidationErrors => {
+  const errors: UserValidationErrors = {};
+
+  // Name validation
+  if (!formData.name.trim()) {
+    errors.name = "Name is required";
+  }
+
+  // Email validation
+  if (!formData.email.trim()) {
+    errors.email = "Email is required";
+  } else {
+    const emailError = validateEmail(formData.email);
+    if (emailError) {
+      errors.email = emailError;
+    }
+  }
+
+  // Role validation
+  if (!formData.role) {
+    errors.role = "Role is required";
+  }
+
+  // Department validation
+  if (!formData.departmentId) {
+    errors.departmentId = "Department is required";
+  }
+
+  // Manager email validation
+  if (formData.role === "employee" && !formData.managerEmail.trim()) {
+    errors.managerEmail = "Manager is required for employees";
+  } else if (formData.managerEmail.trim()) {
+    const managerEmailError = validateEmail(formData.managerEmail);
+    if (managerEmailError) {
+      errors.managerEmail = "Invalid manager email";
+    }
+  }
+
+  return errors;
+};
+
+/**
+ * Checks if there are any validation errors
+ */
+export const hasValidationErrors = (
+  errors: UserValidationErrors
+): boolean => {
+  return Object.keys(errors).length > 0;
 };
 
 import { z } from "zod";
