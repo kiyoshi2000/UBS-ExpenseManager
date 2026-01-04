@@ -5,10 +5,13 @@ import axios from "axios";
  *
  * This instance is responsible for:
  * - Defining the backend base URL
- * - Automatically attaching the JWT token to every request
+ * - Sending credentials (cookies) with every request
  *
  * All API calls (auth, departments, etc.) must use this instance
  * to ensure consistency and security.
+ *
+ * Authentication is handled via httpOnly cookies set by the backend,
+ * which are automatically sent with each request.
  */
 export const api = axios.create({
   /**
@@ -18,26 +21,12 @@ export const api = axios.create({
    * - Falls back to localhost for local development
    */
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080",
-});
 
-/**
- * Axios request interceptor.
- *
- * This interceptor runs BEFORE every HTTP request
- * and injects the JWT token (if present) into the Authorization header.
- *
- * This allows the backend (Spring Security) to:
- * - Authenticate the user
- * - Authorize requests based on roles (FINANCE, MANAGER, EMPLOYEE)
- */
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("jwt_token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
+  /**
+   * Enable sending cookies with cross-origin requests.
+   * Required for httpOnly cookie-based authentication.
+   */
+  withCredentials: true,
 });
 
 export default api;
