@@ -34,4 +34,4 @@ services:
     build: ./frontend
     container_name: expense-frontend
     ports:
-      - "5173:5173"
+      - "3000:3000"
