@@ -23,13 +23,25 @@ import { DepartmentForm } from "./components/DepartmentForm";
  * - Correct Create flow resets editing state
  */
 
+const getUserRole = (): string | null => {
+  const raw = localStorage.getItem("user");
+  if (!raw) return null;
+
+  try {
+    const user = JSON.parse(raw) as { role: string };
+    return user.role;
+  } catch {
+    return null;
+  }
+};
+
 export const DepartmentPage = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [editing, setEditing] = useState<Department | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const role = localStorage.getItem("user_role");
+  const role = getUserRole();
   const canEdit = role === "FINANCE" || role === "ROLE_FINANCE";
 
   async function loadDepartments() {

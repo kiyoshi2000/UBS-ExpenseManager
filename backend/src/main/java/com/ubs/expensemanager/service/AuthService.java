@@ -5,20 +5,14 @@ import com.ubs.expensemanager.dto.request.LoginRequest;
 import com.ubs.expensemanager.dto.request.UserCreateRequest;
 import com.ubs.expensemanager.dto.response.LoginResponse;
 import com.ubs.expensemanager.dto.response.UserResponse;
-import com.ubs.expensemanager.exception.ResourceNotFoundException;
 import com.ubs.expensemanager.exception.UserExistsException;
 import com.ubs.expensemanager.model.User;
-import com.ubs.expensemanager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service responsible for authentication logic.
@@ -31,8 +25,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthService {
     private final AuthenticationManager authenticationManager;
-    private final UserRepository repository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
 
     /**
@@ -46,19 +39,7 @@ public class AuthService {
      * @throws UserExistsException if email is already registered
      */
     public LoginResponse register(UserCreateRequest request) {
-        if (repository.existsByEmail(request.getEmail())) {
-            throw new UserExistsException(
-                    "The email '" + request.getEmail() + "' is already registered"
-            );
-        }
-
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .build();
-
-        User savedUser = repository.save(user);
+        User savedUser = userService.createUser(request);
 
         String token = jwtUtil.generateToken(savedUser);
 
@@ -93,24 +74,5 @@ public class AuthService {
                 .token(token)
                 .user(UserResponse.fromEntity(user))
                 .build();
-    }
-
-    public List<UserResponse> findAll() {
-        return repository.findAll()
-                .stream()
-                .map(UserResponse::fromEntity)
-                .collect(Collectors.toList());
-    }
-
-    public UserResponse find(Long id) {
-        User user = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("There is no user with id " + id));
-        return UserResponse.fromEntity(user);
-    }
-
-    public void delete(Long id) {
-        User user = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("There is no user with id " + id));
-        repository.delete(user);
     }
 }

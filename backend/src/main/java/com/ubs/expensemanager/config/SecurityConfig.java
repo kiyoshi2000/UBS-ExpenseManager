@@ -39,6 +39,7 @@ public class SecurityConfig {
   private static final String[] PUBLIC_ENDPOINTS = {
       "/api/auth/login",
       "/api/auth/register",
+      "/api/auth/logout",
 
       "/swagger-ui/**",
       "/v3/api-docs/**",
@@ -131,7 +132,7 @@ public class SecurityConfig {
       public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
             .allowedOrigins(allowedOrigins)
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .allowCredentials(true);
       }

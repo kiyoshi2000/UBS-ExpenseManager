@@ -1,19 +1,35 @@
 import { Navigate } from "react-router-dom";
 
+interface User {
+  id: number;
+  email: string;
+  role: string;
+}
+
 interface ProtectedRouteProps {
   children: JSX.Element;
   allowedRoles?: string[];
 }
 
-export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const token = localStorage.getItem("jwt_token");
-  const role = localStorage.getItem("user_role");
+const getUser = (): User | null => {
+  const raw = localStorage.getItem("user");
+  if (!raw) return null;
 
-  // no token -> goto login
-  if (!token) return <Navigate to="/" replace />;
+  try {
+    return JSON.parse(raw) as User;
+  } catch {
+    return null;
+  }
+};
+
+export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
+  const user = getUser();
+
+  // no user -> goto login
+  if (!user) return <Navigate to="/" replace />;
 
   // no perm -> goto dashboard
-  if (allowedRoles && !allowedRoles.includes(role || "")) {
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/dashboard" replace />;
   }
 

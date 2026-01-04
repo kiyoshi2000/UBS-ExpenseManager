@@ -64,9 +64,9 @@ export const LoginForm = () => {
         data
       );
 
-      localStorage.setItem('jwt_token', result.token);
+      // Store only user info for UI purposes
+      // JWT token is handled via httpOnly cookie
       localStorage.setItem('user', JSON.stringify(result.user));
-      localStorage.setItem('user_role', result.user.role);
 
       navigate('/dashboard');
     } catch (error) {

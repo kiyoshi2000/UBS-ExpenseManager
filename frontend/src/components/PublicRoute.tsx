@@ -5,10 +5,10 @@ interface PublicRouteProps {
 }
 
 export const PublicRoute = ({ children }: PublicRouteProps) => {
-  const token = localStorage.getItem("jwt_token");
+  const user = localStorage.getItem("user");
 
   // if the user has a session redirect to dashboard
-  if (token) {
+  if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -4,6 +4,7 @@ import com.ubs.expensemanager.dto.request.LoginRequest;
 import com.ubs.expensemanager.dto.request.UserCreateRequest;
 import com.ubs.expensemanager.dto.response.ErrorResponse;
 import com.ubs.expensemanager.dto.response.LoginResponse;
+import com.ubs.expensemanager.dto.response.UserResponse;
 import com.ubs.expensemanager.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,9 +13,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,12 +35,30 @@ import java.net.URI;
  * with detailed messages when input is invalid or credentials are incorrect.</p>
  */
 @Slf4j
-@AllArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "Authentication Endpoints")
 public class AuthController {
     private final AuthService authService;
+
+    @Value("${app.cookie.secure:true}")
+    private boolean secureCookie;
+
+    private static final String JWT_COOKIE_NAME = "jwt_token";
+    private static final int COOKIE_MAX_AGE = 86400; // 24 hours
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    private Cookie createJwtCookie(String token, int maxAge) {
+        Cookie cookie = new Cookie(JWT_COOKIE_NAME, token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(secureCookie);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAge);
+        return cookie;
+    }
 
     /**
      * Authenticates a user using email and password.
@@ -50,61 +72,45 @@ public class AuthController {
      * @throws jakarta.validation.ValidationException if input validation fails
      */
     @Operation(
-            summary = "User Login",
-            description = "Authenticate the user with email and password"
+            summary = "User login",
+            description = "Authenticates the user and returns authentication data"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Login successful"),
             @ApiResponse(
-                    responseCode = "400",
-                    description = "Validation error",
+                    responseCode = "200",
+                    description = "Login successful",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    name = "Validation Error",
-                                    value = """
-                                    {
-                                      "timestamp": "2025-12-20T15:05:29.519982678Z",
-                                      "status": 400,
-                                      "error": "Validation error",
-                                      "message": "Validation failed for one or more fields",
-                                      "path": "/api/auth/login",
-                                      "errors": {
-                                        "email": "must be a well-formed email address"
-                                      }
-                                    }
-                                    """
-                            )
+                            schema = @Schema(implementation = UserResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid request",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Invalid credentials",
+                    description = "Unauthorized",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    name = "Invalid Credentials",
-                                    value = """
-                                    {
-                                      "timestamp": "2025-12-20T15:04:06.098997078Z",
-                                      "status": 401,
-                                      "error": "Unauthorized",
-                                      "message": "Invalid Credentials",
-                                      "path": "/api/auth/login"
-                                    }
-                                    """
-                            )
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             )
     })
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @Valid @RequestBody LoginRequest request
+            @Valid @RequestBody LoginRequest request,
+            HttpServletResponse httpResponse
     ) {
         log.info("Login attempt for email={}", request.getEmail());
         LoginResponse response = authService.login(request);
+
+        httpResponse.addCookie(createJwtCookie(response.getToken(), COOKIE_MAX_AGE));
+
         log.info("Login success for email={}", request.getEmail());
         return ResponseEntity.ok(response);
     }
@@ -120,69 +126,62 @@ public class AuthController {
      * @return ResponseEntity with status 201 and LoginResponse body
      */
     @Operation(
-            summary = "User Registration",
-            description = "Register a new user in the system"
+            summary = "User registration",
+            description = "Creates a new user and returns authentication data"
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "201",
-                    description = "User created successfully"
+                    description = "User created successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginResponse.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Validation error",
+                    description = "Invalid request",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    name = "Validation Error",
-                                    value = """
-                                {
-                                  "timestamp": "2025-12-23T15:05:29.519982678Z",
-                                  "status": 400,
-                                  "error": "Validation error",
-                                  "message": "Validation failed for one or more fields",
-                                  "path": "/api/auth/register",
-                                  "errors": {
-                                    "email": "must be a well-formed email address"
-                                  }
-                                }
-                                """
-                            )
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "User already exists",
+                    description = "Conflict",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    name = "User Already Exists",
-                                    value = """
-                                {
-                                  "timestamp": "2025-12-23T15:04:06.098997078Z",
-                                  "status": 409,
-                                  "error": "Conflict",
-                                  "message": "The email 'finance@ubs.com' is already registered",
-                                  "path": "/api/auth/register"
-                                }
-                                """
-                            )
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             )
     })
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(
-            @Valid @RequestBody UserCreateRequest request
+            @Valid @RequestBody UserCreateRequest request,
+            HttpServletResponse httpResponse
     ) {
         log.info("Registration attempt for email={}", request.getEmail());
         LoginResponse response = authService.register(request);
+
+        httpResponse.addCookie(createJwtCookie(response.getToken(), COOKIE_MAX_AGE));
+
         log.info("Registration success for email={}", request.getEmail());
 
         return ResponseEntity
                 .created(URI.create("/api/users/" + response.getUser().getId()))
                 .body(response);
+    }
+
+    @Operation(
+            summary = "User Logout",
+            description = "Logout the user and clear the authentication cookie"
+    )
+    @ApiResponse(responseCode = "200", description = "Logout successful")
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse httpResponse) {
+        log.info("Logout request received");
+        httpResponse.addCookie(createJwtCookie(null, 0));
+        return ResponseEntity.ok().build();
     }
 }
 

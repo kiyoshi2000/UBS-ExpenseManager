@@ -24,7 +24,20 @@ public class UserCreateRequest {
     @Schema(description = "Password of the user", example = "123456")
     private String password;
 
+    @NotBlank(message = "name is required")
+    @Schema(description = "Name of the user", example = "Pedro")
+    private String name;
+
     @NotNull(message = "role is required")
     @Schema(description = "User role", example = "FINANCE")
     private UserRole role;
+
+    @NotNull(message = "departmentId is required")
+    @Schema(description = "Department ID", example = "1")
+    private Long departmentId;
+
+    @Email
+    @Schema(description = "Email of the manager (optional, required only for EMPLOYEE role)",
+            example = "manager@ubs.com")
+    private String managerEmail;
 }
