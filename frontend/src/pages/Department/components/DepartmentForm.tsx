@@ -1,111 +1,95 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { departmentSchema, DepartmentFormData } from "@/utils/validation";
-import { Department } from "@/types/department";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  departmentSchema,
+  DepartmentFormData,
+} from "@/utils/validation";
+import { Department } from "../types/department";
 
-/**
- * DepartmentForm
- *
- * Reusable form for creating and editing departments.
- *
- * Improvements:
- * - Clear context (Create vs Edit)
- * - Strong visual feedback for buttons (enabled/disabled)
- * - Better spacing and readability
- */
-
-type Props = {
+interface Props {
   initialData?: Department | null;
-  onSubmit: (data: DepartmentFormData) => void;
-  onCancel: () => void;
-};
+  onSubmit: (data: DepartmentFormData) => Promise<void>;
+}
 
-export const DepartmentForm = ({ initialData, onSubmit, onCancel }: Props) => {
+export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<DepartmentFormData>({
     resolver: zodResolver(departmentSchema),
     mode: "onTouched",
     defaultValues: {
       name: initialData?.name ?? "",
       monthlyBudget: initialData?.monthlyBudget ?? 0,
+      dailyBudget: initialData?.dailyBudget,
       currency: initialData?.currency ?? "USD",
     },
   });
 
-  const formTitle = initialData ? "Edit Department" : "Create Department";
-  const submitLabel = initialData ? "Update" : "Save";
-
   return (
-    <div className="border rounded p-4 bg-muted/30">
-      <h2 className="text-xl font-semibold mb-4">{formTitle}</h2>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {/* Name */}
+      <div className="space-y-2">
+        <Label>Name *</Label>
+        <Input {...register("name")} />
+        {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
+      </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Name</label>
-          <input
-            {...register("name")}
-            className="w-full border rounded px-3 py-2"
-            placeholder="e.g. HR"
-          />
-          {errors.name && (
-            <p className="text-sm text-destructive">{errors.name.message}</p>
-          )}
-        </div>
+      {/* Monthly Budget */}
+      <div className="space-y-2">
+        <Label>Monthly Budget *</Label>
+        <Input
+          type="number"
+          {...register("monthlyBudget", { valueAsNumber: true })}
+        />
+        {errors.monthlyBudget && (
+          <p className="text-sm text-red-600">{errors.monthlyBudget.message}</p>
+        )}
+      </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Monthly Budget</label>
-          <input
-            type="number"
-            {...register("monthlyBudget", { valueAsNumber: true })}
-            className="w-full border rounded px-3 py-2"
-            placeholder="e.g. 1000"
-          />
-          {errors.monthlyBudget && (
-            <p className="text-sm text-destructive">
-              {errors.monthlyBudget.message}
-            </p>
-          )}
-        </div>
+      {/* Daily Budget */}
+      <div className="space-y-2">
+        <Label>Daily Budget (optional)</Label>
+        <Input
+          type="number"
+          {...register("dailyBudget", { valueAsNumber: true })}
+        />
+        {errors.dailyBudget && (
+          <p className="text-sm text-red-600">{errors.dailyBudget.message}</p>
+        )}
+      </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Currency</label>
-          <input
-            {...register("currency")}
-            className="w-full border rounded px-3 py-2"
-            placeholder="e.g. USD"
-          />
-          {errors.currency && (
-            <p className="text-sm text-destructive">
-              {errors.currency.message}
-            </p>
-          )}
-        </div>
+      {/* Currency */}
+      <div className="space-y-2">
+        <Label>Currency *</Label>
+        <select
+          {...register("currency")}
+          className="flex h-9 w-full rounded-md border px-3 text-sm"
+        >
+          <option value="USD">USD</option>
+          <option value="BRL">BRL</option>
+        </select>
+        {errors.currency && (
+          <p className="text-sm text-red-600">{errors.currency.message}</p>
+        )}
+      </div>
 
-        <div className="flex gap-2 pt-2">
-          <button
-            type="submit"
-            disabled={!isValid || isSubmitting}
-            className={`px-4 py-2 rounded text-white ${
-              !isValid || isSubmitting
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
-          >
-            {isSubmitting ? "Saving..." : submitLabel}
-          </button>
-
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+      <div className="flex justify-end gap-2 pt-4">
+        <button
+          type="submit"
+          disabled={!isValid || isSubmitting}
+          className={`h-10 rounded px-4 text-white ${
+            isValid
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
+        >
+          {isSubmitting ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </form>
   );
 };
