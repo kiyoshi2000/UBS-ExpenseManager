@@ -2,6 +2,7 @@ package com.ubs.expensemanager.controller;
 
 import com.ubs.expensemanager.dto.request.ExpenseCategoryCreateRequest;
 import com.ubs.expensemanager.dto.request.ExpenseCategoryUpdateRequest;
+import com.ubs.expensemanager.dto.response.ExpenseCategoryAuditResponse;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryResponse;
 import com.ubs.expensemanager.dto.response.ErrorResponse;
 import com.ubs.expensemanager.service.ExpenseCategoryService;
@@ -19,6 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -99,7 +101,8 @@ public class ExpenseCategoryController {
      */
     @Operation(
             summary = "Get expense category by id",
-            description = "Returns a single expense category by its identifier"
+            description = "Returns a single expense category by its identifier. " +
+                    "Optionally accepts a date parameter to retrieve historical data from audit table."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Category retrieved successfully"),
@@ -107,14 +110,42 @@ public class ExpenseCategoryController {
                     responseCode = "404",
                     description = "Category not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid date format",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ExpenseCategoryResponse> findById(@PathVariable Long id) {
+    public ResponseEntity<ExpenseCategoryResponse> findById(
+            @PathVariable Long id,
+            @RequestParam(required = false) OffsetDateTime dateTime) {
 
-        log.info("Retrieving expense category id={}", id);
+        log.info("Retrieving expense category id={}{}", id, dateTime != null ? " at dateTime=" + dateTime : "");
+        return ResponseEntity.ok(expenseCategoryService.findById(id, dateTime));
+    }
 
-        return ResponseEntity.ok(expenseCategoryService.findById(id));
+    /**
+     * Retrieves the complete audit history for an expense category.
+     */
+    @Operation(
+            summary = "Get audit history for expense category",
+            description = "Returns all historical revisions of an expense category ordered by revision number"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Audit history retrieved successfully"),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Category not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    @GetMapping("/{id}/audit")
+    public ResponseEntity<List<ExpenseCategoryAuditResponse>> getAuditHistory(@PathVariable Long id) {
+
+        log.info("Retrieving audit history for expense category id={}", id);
+        return ResponseEntity.ok(expenseCategoryService.getAuditHistory(id));
     }
 
     /**
@@ -161,35 +192,4 @@ public class ExpenseCategoryController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Deletes an expense category by its identifier.
-     */
-    @Operation(
-            summary = "Delete an expense category",
-            description = "Deletes an expense category by id"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Category deleted successfully"),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Category not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Access denied"
-            )
-    })
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('FINANCE')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-
-        log.info("Deleting expense category id={}", id);
-
-        expenseCategoryService.delete(id);
-
-        log.info("Expense category deleted successfully id={}", id);
-
-        return ResponseEntity.noContent().build();
-    }
 }

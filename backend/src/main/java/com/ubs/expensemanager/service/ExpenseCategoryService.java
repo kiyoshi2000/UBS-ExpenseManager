@@ -2,14 +2,24 @@ package com.ubs.expensemanager.service;
 
 import com.ubs.expensemanager.dto.request.ExpenseCategoryCreateRequest;
 import com.ubs.expensemanager.dto.request.ExpenseCategoryUpdateRequest;
+import com.ubs.expensemanager.dto.response.ExpenseCategoryAuditResponse;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryResponse;
 import com.ubs.expensemanager.exception.ConflictException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
 import com.ubs.expensemanager.model.ExpenseCategory;
 import com.ubs.expensemanager.repository.ExpenseCategoryRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.RevisionType;
+import org.hibernate.envers.query.AuditEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +34,7 @@ import java.util.stream.Collectors;
 public class ExpenseCategoryService {
 
     private final ExpenseCategoryRepository expenseCategoryRepository;
+    private final EntityManager entityManager;
 
     /**
      * Creates a new expense category.
@@ -62,15 +73,86 @@ public class ExpenseCategoryService {
 
     /**
      * Retrieves a single expense category by its identifier.
+     * 
+     * <p> If dateTime is provided, queries the audit history to retrieve the version
+     * that was active at the specified moment. Otherwise, retrieves the current version. </p>
+     *
+     * @param id       category identifier
+     * @param dateTime optional date-time to query historical data (null for current version)
+     * @return category as response DTO
+     * @throws ResourceNotFoundException if category not found or no audit record exists for the date
+     */
+    public ExpenseCategoryResponse findById(Long id, OffsetDateTime dateTime) {
+
+        // If no dateTime is provided, return the ExpenseCategory itself
+        if (dateTime == null) {
+            ExpenseCategory category = expenseCategoryRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Expense category not found"));
+            return toResponse(category);
+        }
+        // Else, find the audit relative to that provided date
+        
+        var auditReader = AuditReaderFactory.get(entityManager);
+        
+        Date queryDate = Date.from(dateTime.toInstant());
+        
+        List results = auditReader.createQuery()
+                .forEntitiesAtRevision(ExpenseCategory.class, auditReader.getRevisions(ExpenseCategory.class, id)
+                    .stream()
+                    .filter(rev -> {
+                        Date revDate = auditReader.getRevisionDate(rev);
+                        return !revDate.after(queryDate);
+                    })
+                    .max((a, b) -> Integer.compare(a.intValue(), b.intValue()))
+                    .orElseThrow(() -> new ResourceNotFoundException("No audit record found for category at specified date")))
+                .add(AuditEntity.id().eq(id))
+                .getResultList();
+        
+        if (results.isEmpty()) {
+            throw new ResourceNotFoundException("Expense category not found in audit history");
+        }
+        
+        return toResponse((ExpenseCategory) results.getFirst());
+    }
+
+    /**
+     * Retrieves the complete audit history for an expense category (asc order).
      *
      * @param id category identifier
-     * @return category as response DTO
+     * @return list of all audited versions of the category
      */
-    public ExpenseCategoryResponse findById(Long id) {
-        ExpenseCategory category = expenseCategoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Expense category not found"));
+    @SuppressWarnings("unchecked")
+    public List<ExpenseCategoryAuditResponse> getAuditHistory(Long id) {
+        if (!expenseCategoryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Expense category not found");
+        }
 
-        return toResponse(category);
+        var auditReader = AuditReaderFactory.get(entityManager);
+        
+        List<Object[]> results = auditReader.createQuery()
+                .forRevisionsOfEntity(ExpenseCategory.class, false, true)
+                .add(AuditEntity.id().eq(id))
+                .getResultList();
+        
+        return results.stream()
+                .map(result -> {
+                    ExpenseCategory entity = (ExpenseCategory) result[0];
+                    Number revNumber = (Number) ((org.hibernate.envers.DefaultRevisionEntity) result[1]).getId();
+                    long revTimestamp = ((org.hibernate.envers.DefaultRevisionEntity) result[1]).getTimestamp();
+                    RevisionType revType = (RevisionType) result[2];
+
+                    return ExpenseCategoryAuditResponse.builder()
+                            .id(entity.getId())
+                            .name(entity.getName())
+                            .dailyBudget(entity.getDailyBudget())
+                            .monthlyBudget(entity.getMonthlyBudget())
+                            .revisionNumber(revNumber)
+                            .revisionType((short) revType.ordinal())
+                            .revisionDate(LocalDateTime.ofInstant(
+                                    Instant.ofEpochMilli(revTimestamp), ZoneId.systemDefault()))
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     /**
@@ -99,18 +181,7 @@ public class ExpenseCategoryService {
         return toResponse(updatedCategory);
     }
 
-    /**
-     * Deletes an expense category by its identifier.
-     *
-     * @param id category identifier
-     */
-    public void delete(Long id) {
-        if (!expenseCategoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Expense category not found");
-        }
 
-        expenseCategoryRepository.deleteById(id);
-    }
 
     /**
      * Maps an ExpenseCategory entity to an ExpenseCategoryResponse DTO.
