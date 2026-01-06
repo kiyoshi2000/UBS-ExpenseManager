@@ -238,8 +238,8 @@ test.describe('User Management Full Workflow', () => {
     // STEP 1: Create Manager User
     // ============================================
     await test.step('Create manager user', async () => {
-      // Click Add New Employee button
-      await page.getByRole('button', { name: /add new employee/i }).click();
+      // Click Add User button
+      await page.getByRole('button', { name: /add user/i }).click();
 
       // Wait for dialog to open
       await expect(page.getByText('Create New User')).toBeVisible();
@@ -266,8 +266,8 @@ test.describe('User Management Full Workflow', () => {
     // STEP 2: Create Employee User with Manager
     // ============================================
     await test.step('Create employee user with manager assigned', async () => {
-      // Click Add New Employee button
-      await page.getByRole('button', { name: /add new employee/i }).click();
+      // Click Add User button
+      await page.getByRole('button', { name: /add user/i }).click();
 
       // Wait for dialog to open
       await expect(page.getByText('Create New User')).toBeVisible();

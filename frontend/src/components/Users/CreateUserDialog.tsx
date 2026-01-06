@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { listDepartments } from "@/services/department.service";
 import { Department } from "@/types/department";
 import { getManagersByDepartment, User } from "@/api/user.api";
@@ -324,7 +325,7 @@ export const CreateUserDialog = ({
                 errors.managerEmail ? "border-destructive aria-invalid:border-destructive" : "border-input"
               }`}
             >
-              <option value="">{!formData.departmentId ? "Select a department first" : "Select a manager (optional)"}</option>
+              <option value="">{!formData.departmentId ? "Select a department first" : formData.role === "employee" ? "Select a manager" : "Select a manager (optional)"}</option>
               {managers.map((manager) => (
                 <option key={manager.id} value={manager.email}>
                   {manager.name} ({manager.email})
@@ -337,25 +338,23 @@ export const CreateUserDialog = ({
           </div>
 
           <DialogFooter className="gap-2 pt-4">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="lg"
               onClick={() => handleOpenChange(false)}
-              className="inline-flex h-10 items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer dark:border-gray-700 dark:bg-gray-950 dark:text-gray-400 dark:hover:bg-gray-900"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="default"
+              size="lg"
               disabled={!isFormValid()}
               onClick={handleSubmit}
-              className={`inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-white transition-colors ${
-                isFormValid()
-                  ? "bg-blue-600 hover:bg-blue-700 cursor-pointer dark:bg-blue-700 dark:hover:bg-blue-600"
-                  : "bg-gray-400 cursor-not-allowed dark:bg-gray-700"
-              }`}
             >
               Create User
-            </button>
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
