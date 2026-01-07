@@ -5,12 +5,3 @@ PUBLIC.departments:
     monthly_budget: 10.0
     currency: "USD"
 
-PUBLIC.users:
-  - id: 1
-    name: "Ubs User"
-    email: "john@email.com"
-    password: "fakehashedpassword"
-    role: "EMPLOYEE"
-    manager_id: null
-    department_id: 1
-    active: true

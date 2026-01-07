@@ -1,0 +1,7 @@
+{
+  "email": "finance@ubs.com",
+  "password": "123456",
+  "role": "FINANCE",
+  "name": "Finance User",
+  "departmentId": 1
+}

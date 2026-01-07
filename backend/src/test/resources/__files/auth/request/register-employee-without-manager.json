@@ -1,0 +1,7 @@
+{
+  "email": "user_employee@ubs.com",
+  "password": "123456",
+  "role": "EMPLOYEE",
+  "name": "Employee User",
+  "departmentId": 1
+}

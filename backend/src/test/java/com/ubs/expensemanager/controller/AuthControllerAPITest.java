@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import com.github.database.rider.core.api.dataset.DataSet;
+import com.github.database.rider.core.api.dataset.ExpectedDataSet;
 import com.ubs.expensemanager.dto.request.LoginRequest;
+import com.ubs.expensemanager.dto.request.UserCreateRequest;
 import com.ubs.expensemanager.dto.response.LoginResponse;
 import com.ubs.expensemanager.model.User;
 import com.ubs.expensemanager.model.UserRole;
@@ -57,7 +60,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
    * authenticate a user when the request is valid.
    */
   @Test
-  @DataSet(BASE_DATASET + "input/empty.yml")
+  @DataSet(BASE_DATASET + "input/employee-user-registered.yml")
   void shouldLoginInWhenRequestIsValid() {
     // given
     final String endpointPath = getPath();
@@ -71,7 +74,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
     User user = User.builder()
         .id(1L)
         .name("Ubs User")
-        .email("john@email.com")
+        .email("user_employee@ubs.com")
         .role(UserRole.EMPLOYEE)
         .build();
 
@@ -98,9 +101,12 @@ public class AuthControllerAPITest extends ControllerAPITest {
         () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
         () -> assertNotNull(response.getBody()),
         () -> assertEquals("fake-jwt-token", Objects.requireNonNull(response.getBody()).getToken()),
-        () -> assertNotNull(response.getBody().getUser()),
-        () -> assertEquals("Ubs User", response.getBody().getUser().getName()),
-        () -> assertEquals(1L, response.getBody().getUser().getId()),
+        () -> {
+          assertNotNull(response.getBody());
+          assertNotNull(response.getBody().getUser());
+          assertEquals("Ubs User", response.getBody().getUser().getName());
+          assertEquals(1L, response.getBody().getUser().getId());
+        },
         () -> assertNotNull(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE)),
         () -> assertTrue(
             Objects.requireNonNull(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE))
@@ -113,7 +119,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
    * when password is incorrect.
    */
   @Test
-  @DataSet(BASE_DATASET + "input/empty.yml")
+  @DataSet(BASE_DATASET + "input/employee-user-registered.yml")
   void shouldReturn401WhenPasswordIsIncorrect() {
     // given
     final String endpointPath = getPath();
@@ -144,7 +150,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
    * when email does not exist.
    */
   @Test
-  @DataSet(BASE_DATASET + "input/empty.yml")
+  @DataSet(BASE_DATASET + "input/employee-user-registered.yml")
   void shouldReturn401WhenEmailDoesNotExist() {
     // given
     final String endpointPath = getPath();
@@ -175,7 +181,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
    * when email is empty.
    */
   @Test
-  @DataSet(BASE_DATASET + "input/empty.yml")
+  @DataSet(BASE_DATASET + "input/employee-user-registered.yml")
   void shouldReturn400WhenEmailIsEmpty() {
     // given
     final String endpointPath = getPath();
@@ -206,7 +212,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
    * when email format is invalid.
    */
   @Test
-  @DataSet(BASE_DATASET + "input/empty.yml")
+  @DataSet(BASE_DATASET + "input/employee-user-registered.yml")
   void shouldReturn400WhenEmailFormatIsInvalid() {
     // given
     final String endpointPath = getPath();
@@ -237,7 +243,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
    * when password is empty.
    */
   @Test
-  @DataSet(BASE_DATASET + "input/empty.yml")
+  @DataSet(BASE_DATASET + "input/employee-user-registered.yml")
   void shouldReturn400WhenPasswordIsEmpty() {
     // given
     final String endpointPath = getPath();
@@ -260,6 +266,178 @@ public class AuthControllerAPITest extends ControllerAPITest {
     assertAll(
         () -> assertNotNull(response),
         () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode())
+    );
+  }
+
+  /**
+   * Verifies if {@link AuthController#register(UserCreateRequest, HttpServletResponse)} will create
+   * a user when request is valid.
+   */
+  @Test
+  @DataSet(BASE_DATASET + "input/empty.yml")
+  @ExpectedDataSet(BASE_DATASET + "expected/register-user.yml")
+  void shouldRegisterWhenRequestIsValid() {
+    // given
+    final String endpointPath = getPath();
+    final String data = readFixtureFile("__files/auth/request/register-finance-user.json");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    String requestPath = endpointPath + "/register";
+
+    when(passwordEncoder.encode(anyString())).thenReturn("fakehashedpassword");
+    when(jwtUtil.generateToken(any(User.class))).thenReturn("fake-jwt-token");
+
+    // when
+    var response = restTemplate.exchange(requestPath, HttpMethod.POST,
+        new HttpEntity<>(data, headers), LoginResponse.class);
+
+    // then
+    assertAll(
+        () -> assertNotNull(response),
+        () -> assertEquals(HttpStatus.CREATED, response.getStatusCode()),
+        () -> {
+          assertNotNull(response.getBody());
+          assertNotNull(response.getBody().getToken());
+          assertNotNull(response.getBody().getUser());
+          assertNotNull(response.getBody().getUser().getId());
+          assertEquals("Finance User", response.getBody().getUser().getName());
+          assertEquals("finance@ubs.com", response.getBody().getUser().getEmail());
+          assertTrue(Objects.requireNonNull(response.getHeaders().getLocation()).toString()
+              .contains("/api/users/" + response.getBody().getUser().getId())
+          );
+        },
+        () -> assertNotNull(response.getHeaders().getLocation()),
+        () -> assertNotNull(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE)),
+        () -> assertTrue(
+            Objects.requireNonNull(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE))
+                .contains("jwt_token=")
+        )
+    );
+  }
+
+
+  /**
+   * Verifies if {@link AuthController#register(UserCreateRequest, HttpServletResponse)} will return
+   * 400 when email is empty.
+   */
+  @Test
+  @DataSet(BASE_DATASET + "input/empty.yml")
+  void shouldRegisterEmployeeWithManager() {
+    // given
+    final String endpointPath = getPath();
+    final String data = readFixtureFile("__files/auth/request/register-empty-email.json");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    String requestPath = endpointPath + "/register";
+
+    // when
+    ResponseEntity<String> response = restTemplate.exchange(
+        requestPath,
+        HttpMethod.POST,
+        new HttpEntity<>(data, headers),
+        String.class
+    );
+
+    // then
+    assertAll(
+        () -> assertNotNull(response),
+        () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode())
+    );
+  }
+
+  /**
+   * Verifies if {@link AuthController#register(UserCreateRequest, HttpServletResponse)} will return
+   * 409 when email already exists.
+   */
+  @Test
+  @DataSet(BASE_DATASET + "input/employee-user-registered.yml")
+  @ExpectedDataSet(BASE_DATASET + "input/employee-user-registered.yml")
+  void shouldReturn409WhenEmailAlreadyExists() {
+    // given
+    final String endpointPath = getPath();
+    final String data = readFixtureFile(
+        "__files/auth/request/register-employee-user.json");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    String requestPath = endpointPath + "/register";
+
+    when(passwordEncoder.encode(anyString())).thenReturn("fakehashedpassword");
+
+    // when
+    var response = restTemplate.exchange(requestPath, HttpMethod.POST,
+        new HttpEntity<>(data, headers), String.class);
+
+    // then
+    assertAll(
+        () -> assertNotNull(response),
+        () -> assertEquals(HttpStatus.CONFLICT, response.getStatusCode()),
+        () -> assertTrue(Objects.requireNonNull(response.getBody())
+            .contains("is already registered"))
+    );
+  }
+
+  /**
+   * Verifies if {@link AuthController#register(UserCreateRequest, HttpServletResponse)} will return
+   * 400 when trying to register an EMPLOYEE without a manager.
+   */
+  @Test
+  @DataSet(BASE_DATASET + "input/empty.yml")
+  void shouldReturn400WhenTryRegisterEmployeeWithoutManager() {
+    // given
+    final String endpointPath = getPath();
+    final String data = readFixtureFile(
+        "__files/auth/request/register-employee-without-manager.json");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    String requestPath = endpointPath + "/register";
+
+    // when
+    ResponseEntity<String> response = restTemplate.exchange(requestPath, HttpMethod.POST,
+        new HttpEntity<>(data, headers), String.class);
+
+    // then
+    assertAll(
+        () -> assertNotNull(response),
+        () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode()),
+        () -> assertTrue(Objects.requireNonNull(response.getBody())
+            .contains("EMPLOYEE requires a manager"))
+    );
+  }
+
+  /**
+   * Verifies if {@link AuthController#register(UserCreateRequest, HttpServletResponse)} will return
+   * 400 when email is empty.
+   */
+  @Test
+  @DataSet(BASE_DATASET + "input/empty.yml")
+  void shouldReturn400WhenRegisterEmailIsEmpty() {
+    // given
+    final String endpointPath = getPath();
+    final String data = readFixtureFile("__files/auth/request/register-empty-email.json");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    String requestPath = endpointPath + "/register";
+
+    // when
+    ResponseEntity<String> response = restTemplate.exchange(requestPath, HttpMethod.POST,
+        new HttpEntity<>(data, headers), String.class);
+
+    // then
+    assertAll(
+        () -> assertNotNull(response),
+        () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode()),
+        () -> assertTrue(Objects.requireNonNull(response.getBody())
+            .contains("email is required"))
     );
   }
 }
