@@ -33,4 +33,8 @@ public class ExpenseCategoryUpdateRequest {
     @NotNull(message = "monthly budget is required")
     @PositiveOrZero(message = "monthly budget must be zero or positive")
     private BigDecimal monthlyBudget;
+
+    @Schema(description = "Currency code (3 characters)", example = "USD")
+    @NotBlank(message = "currency name is required")
+    private String currencyName;
 }

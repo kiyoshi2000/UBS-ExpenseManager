@@ -65,6 +65,7 @@ class ExpenseCategoryControllerTest {
                 .name("Food")
                 .dailyBudget(new BigDecimal("100.00"))
                 .monthlyBudget(new BigDecimal("3000.00"))
+                .currencyName("USD")
                 .build();
 
         ExpenseCategoryResponse response = ExpenseCategoryResponse.builder()
@@ -72,6 +73,8 @@ class ExpenseCategoryControllerTest {
                 .name("Food")
                 .dailyBudget(new BigDecimal("100.00"))
                 .monthlyBudget(new BigDecimal("3000.00"))
+                .currencyName("USD")
+                .exchangeRate(new BigDecimal("1.000000"))
                 .build();
 
         when(expenseCategoryService.create(any())).thenReturn(response);
@@ -84,7 +87,9 @@ class ExpenseCategoryControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Food"))
                 .andExpect(jsonPath("$.dailyBudget").value(100.00))
-                .andExpect(jsonPath("$.monthlyBudget").value(3000.00));
+                .andExpect(jsonPath("$.monthlyBudget").value(3000.00))
+                .andExpect(jsonPath("$.currencyName").value("USD"))
+                .andExpect(jsonPath("$.exchangeRate").value(1.000000));
     }
 
     @Test
@@ -93,6 +98,7 @@ class ExpenseCategoryControllerTest {
                 .name("") // invalid
                 .dailyBudget(new BigDecimal("-10.00")) // invalid
                 .monthlyBudget(null) // invalid
+                .currencyName("") // invalid
                 .build();
 
         mockMvc.perform(post(CATEGORIES_URL)
@@ -114,12 +120,16 @@ class ExpenseCategoryControllerTest {
                         .name("Food")
                         .dailyBudget(new BigDecimal("100.00"))
                         .monthlyBudget(new BigDecimal("3000.00"))
+                        .currencyName("USD")
+                        .exchangeRate(new BigDecimal("1.000000"))
                         .build(),
                 ExpenseCategoryResponse.builder()
                         .id(2L)
                         .name("Transport")
                         .dailyBudget(new BigDecimal("50.00"))
                         .monthlyBudget(new BigDecimal("1500.00"))
+                        .currencyName("USD")
+                        .exchangeRate(new BigDecimal("1.000000"))
                         .build()
         );
 
@@ -151,6 +161,8 @@ class ExpenseCategoryControllerTest {
                 .name("Food")
                 .dailyBudget(new BigDecimal("100.00"))
                 .monthlyBudget(new BigDecimal("3000.00"))
+                .currencyName("USD")
+                .exchangeRate(new BigDecimal("1.000000"))
                 .build();
 
         when(expenseCategoryService.findById(eq(1L), eq(null))).thenReturn(response);
@@ -172,6 +184,8 @@ class ExpenseCategoryControllerTest {
                 .name("Food")
                 .dailyBudget(new BigDecimal("80.00"))
                 .monthlyBudget(new BigDecimal("2400.00"))
+                .currencyName("USD")
+                .exchangeRate(new BigDecimal("1.000000"))
                 .build();
 
         when(expenseCategoryService.findById(eq(1L), any(OffsetDateTime.class)))
@@ -194,6 +208,8 @@ class ExpenseCategoryControllerTest {
                         .name("Food")
                         .dailyBudget(new BigDecimal("100.00"))
                         .monthlyBudget(new BigDecimal("3000.00"))
+                        .currencyName("USD")
+                        .exchangeRate(new BigDecimal("1.000000"))
                         .revisionNumber(1)
                         .revisionType((short) RevisionType.ADD.ordinal())
                         .revisionDate(LocalDateTime.of(2026, 1, 1, 10, 0))
@@ -203,6 +219,8 @@ class ExpenseCategoryControllerTest {
                         .name("Food & Beverages")
                         .dailyBudget(new BigDecimal("120.00"))
                         .monthlyBudget(new BigDecimal("3600.00"))
+                        .currencyName("USD")
+                        .exchangeRate(new BigDecimal("1.000000"))
                         .revisionNumber(2)
                         .revisionType((short) RevisionType.MOD.ordinal())
                         .revisionDate(LocalDateTime.of(2026, 1, 2, 14, 0))
@@ -228,6 +246,7 @@ class ExpenseCategoryControllerTest {
                 .name("Food Updated")
                 .dailyBudget(new BigDecimal("150.00"))
                 .monthlyBudget(new BigDecimal("4500.00"))
+                .currencyName("USD")
                 .build();
 
         ExpenseCategoryResponse response = ExpenseCategoryResponse.builder()
@@ -235,6 +254,8 @@ class ExpenseCategoryControllerTest {
                 .name("Food Updated")
                 .dailyBudget(new BigDecimal("150.00"))
                 .monthlyBudget(new BigDecimal("4500.00"))
+                .currencyName("USD")
+                .exchangeRate(new BigDecimal("1.000000"))
                 .build();
 
         when(expenseCategoryService.update(eq(1L), any())).thenReturn(response);
@@ -255,6 +276,7 @@ class ExpenseCategoryControllerTest {
                 .name("") // invalid
                 .dailyBudget(new BigDecimal("-10.00")) // invalid
                 .monthlyBudget(null) // invalid
+                .currencyName("") // invalid
                 .build();
 
         mockMvc.perform(put(CATEGORIES_URL + "/1")
@@ -265,6 +287,7 @@ class ExpenseCategoryControllerTest {
                 .andExpect(jsonPath("$.error").value("Validation error"))
                 .andExpect(jsonPath("$.errors.name").exists())
                 .andExpect(jsonPath("$.errors.dailyBudget").exists())
-                .andExpect(jsonPath("$.errors.monthlyBudget").exists());
+                .andExpect(jsonPath("$.errors.monthlyBudget").exists())
+                .andExpect(jsonPath("$.errors.currencyName").exists());
     }
 }

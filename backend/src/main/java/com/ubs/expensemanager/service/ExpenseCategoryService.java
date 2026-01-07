@@ -6,7 +6,9 @@ import com.ubs.expensemanager.dto.response.ExpenseCategoryAuditResponse;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryResponse;
 import com.ubs.expensemanager.exception.ConflictException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
+import com.ubs.expensemanager.model.Currency;
 import com.ubs.expensemanager.model.ExpenseCategory;
+import com.ubs.expensemanager.repository.CurrencyRepository;
 import com.ubs.expensemanager.repository.ExpenseCategoryRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 public class ExpenseCategoryService {
 
     private final ExpenseCategoryRepository expenseCategoryRepository;
+    private final CurrencyRepository currencyRepository;
     private final EntityManager entityManager;
 
     /**
@@ -48,10 +51,14 @@ public class ExpenseCategoryService {
             throw new ConflictException("Expense category with this name already exists");
         }
 
+        Currency currency = currencyRepository.findByName(request.getCurrencyName())
+                .orElseThrow(() -> new ResourceNotFoundException("Currency not found: " + request.getCurrencyName()));
+
         ExpenseCategory category = ExpenseCategory.builder()
             .name(request.getName())
             .dailyBudget(request.getDailyBudget())
             .monthlyBudget(request.getMonthlyBudget())
+            .currency(currency)
             .build();
 
         ExpenseCategory savedCategory = expenseCategoryRepository.save(category);
@@ -146,6 +153,8 @@ public class ExpenseCategoryService {
                             .name(entity.getName())
                             .dailyBudget(entity.getDailyBudget())
                             .monthlyBudget(entity.getMonthlyBudget())
+                            .currencyName(entity.getCurrency() != null ? entity.getCurrency().getName() : null)
+                            .exchangeRate(entity.getCurrency() != null ? entity.getCurrency().getExchangeRate() : null)
                             .revisionNumber(revNumber)
                             .revisionType((short) revType.ordinal())
                             .revisionDate(LocalDateTime.ofInstant(
@@ -172,9 +181,13 @@ public class ExpenseCategoryService {
             throw new ConflictException("Expense category with this name already exists");
         }
 
+        Currency currency = currencyRepository.findByName(request.getCurrencyName())
+                .orElseThrow(() -> new ResourceNotFoundException("Currency not found: " + request.getCurrencyName()));
+
         category.setName(request.getName());
         category.setDailyBudget(request.getDailyBudget());
         category.setMonthlyBudget(request.getMonthlyBudget());
+        category.setCurrency(currency);
 
         ExpenseCategory updatedCategory = expenseCategoryRepository.save(category);
 
@@ -192,6 +205,8 @@ public class ExpenseCategoryService {
                 .name(category.getName())
                 .dailyBudget(category.getDailyBudget())
                 .monthlyBudget(category.getMonthlyBudget())
+                .currencyName(category.getCurrency() != null ? category.getCurrency().getName() : null)
+                .exchangeRate(category.getCurrency() != null ? category.getCurrency().getExchangeRate() : null)
                 .build();
     }
 }

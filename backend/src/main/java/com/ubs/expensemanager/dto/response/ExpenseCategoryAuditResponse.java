@@ -28,6 +28,12 @@ public class ExpenseCategoryAuditResponse {
     @Schema(description = "Monthly budget limit for this category", example = "3000.00")
     private BigDecimal monthlyBudget;
 
+    @Schema(description = "Currency code for the budget values", example = "USD")
+    private String currencyName;
+
+    @Schema(description = "Exchange rate relative to USD", example = "1.000000")
+    private BigDecimal exchangeRate;
+
     @Schema(description = "Revision number", example = "1")
     private Number revisionNumber;
 

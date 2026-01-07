@@ -16,6 +16,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jpa:
+          static_metamodel:
+            skip: true
     show-sql: ${SHOW_SQL:false}
   flyway:
     enabled: ${FLYWAY_ENABLED:true}

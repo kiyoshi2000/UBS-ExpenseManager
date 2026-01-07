@@ -6,7 +6,9 @@ import com.ubs.expensemanager.dto.response.ExpenseCategoryAuditResponse;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryResponse;
 import com.ubs.expensemanager.exception.ConflictException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
+import com.ubs.expensemanager.model.Currency;
 import com.ubs.expensemanager.model.ExpenseCategory;
+import com.ubs.expensemanager.repository.CurrencyRepository;
 import com.ubs.expensemanager.repository.ExpenseCategoryRepository;
 import jakarta.persistence.EntityManager;
 import org.hibernate.envers.AuditReader;
@@ -44,6 +46,9 @@ class ExpenseCategoryServiceTest {
     ExpenseCategoryRepository expenseCategoryRepository;
 
     @Mock
+    CurrencyRepository currencyRepository;
+
+    @Mock
     EntityManager entityManager;
 
     @Mock
@@ -62,15 +67,24 @@ class ExpenseCategoryServiceTest {
     ExpenseCategory transportCategory;
     ExpenseCategory foodCategoryFirstVersion;
     ExpenseCategory foodCategorySecondVersion;
+    Currency usdCurrency;
 
     @BeforeEach
     void setUp() {
+        // Setup Currency
+        usdCurrency = Currency.builder()
+                .id(1L)
+                .name("USD")
+                .exchangeRate(new BigDecimal("1.000000"))
+                .build();
+
         // Current version of food category (after 2 edits)
         foodCategory = ExpenseCategory.builder()
                 .id(1L)
                 .name("Food")
                 .dailyBudget(new BigDecimal("150.00"))
                 .monthlyBudget(new BigDecimal("4500.00"))
+                .currency(usdCurrency)
                 .build();
 
         // First version (initial creation)
@@ -79,6 +93,7 @@ class ExpenseCategoryServiceTest {
                 .name("Food")
                 .dailyBudget(new BigDecimal("100.00"))
                 .monthlyBudget(new BigDecimal("3000.00"))
+                .currency(usdCurrency)
                 .build();
 
         // Second version (after first edit)
@@ -87,6 +102,7 @@ class ExpenseCategoryServiceTest {
                 .name("Food & Beverages")
                 .dailyBudget(new BigDecimal("120.00"))
                 .monthlyBudget(new BigDecimal("3600.00"))
+                .currency(usdCurrency)
                 .build();
 
         transportCategory = ExpenseCategory.builder()
@@ -94,6 +110,7 @@ class ExpenseCategoryServiceTest {
                 .name("Transport")
                 .dailyBudget(new BigDecimal("50.00"))
                 .monthlyBudget(new BigDecimal("1500.00"))
+                .currency(usdCurrency)
                 .build();
     }
 
@@ -103,9 +120,11 @@ class ExpenseCategoryServiceTest {
                 .name("Food")
                 .dailyBudget(new BigDecimal("100.00"))
                 .monthlyBudget(new BigDecimal("3000.00"))
+                .currencyName("USD")
                 .build();
 
         when(expenseCategoryRepository.existsByNameIgnoreCase("Food")).thenReturn(false);
+        when(currencyRepository.findByName("USD")).thenReturn(Optional.of(usdCurrency));
         when(expenseCategoryRepository.save(any(ExpenseCategory.class))).thenAnswer(inv -> {
             ExpenseCategory saved = inv.getArgument(0);
             saved.setId(1L);
@@ -119,8 +138,11 @@ class ExpenseCategoryServiceTest {
         assertEquals("Food", response.getName());
         assertEquals(new BigDecimal("100.00"), response.getDailyBudget());
         assertEquals(new BigDecimal("3000.00"), response.getMonthlyBudget());
+        assertEquals("USD", response.getCurrencyName());
+        assertEquals(new BigDecimal("1.000000"), response.getExchangeRate());
 
         verify(expenseCategoryRepository).existsByNameIgnoreCase("Food");
+        verify(currencyRepository).findByName("USD");
         verify(expenseCategoryRepository).save(any(ExpenseCategory.class));
     }
 
@@ -317,10 +339,12 @@ class ExpenseCategoryServiceTest {
                 .name("Food Updated")
                 .dailyBudget(new BigDecimal("200.00"))
                 .monthlyBudget(new BigDecimal("6000.00"))
+                .currencyName("USD")
                 .build();
 
         when(expenseCategoryRepository.findById(1L)).thenReturn(Optional.of(foodCategory));
         when(expenseCategoryRepository.existsByNameIgnoreCase("Food Updated")).thenReturn(false);
+        when(currencyRepository.findByName("USD")).thenReturn(Optional.of(usdCurrency));
         when(expenseCategoryRepository.save(any(ExpenseCategory.class))).thenAnswer(inv -> inv.getArgument(0));
 
         ExpenseCategoryResponse response = expenseCategoryService.update(1L, request);
@@ -330,9 +354,12 @@ class ExpenseCategoryServiceTest {
         assertEquals("Food Updated", response.getName());
         assertEquals(new BigDecimal("200.00"), response.getDailyBudget());
         assertEquals(new BigDecimal("6000.00"), response.getMonthlyBudget());
+        assertEquals("USD", response.getCurrencyName());
+        assertEquals(new BigDecimal("1.000000"), response.getExchangeRate());
 
         verify(expenseCategoryRepository).findById(1L);
         verify(expenseCategoryRepository).existsByNameIgnoreCase("Food Updated");
+        verify(currencyRepository).findByName("USD");
         verify(expenseCategoryRepository).save(any(ExpenseCategory.class));
     }
 }
