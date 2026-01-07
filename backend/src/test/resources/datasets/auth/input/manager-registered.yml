@@ -7,10 +7,10 @@ PUBLIC.departments:
 
 PUBLIC.users:
   - id: 1
-    name: "Ubs User"
-    email: "employee@ubs.com"
+    name: "Manager User"
+    email: "manager@ubs.com"
     password: "fakehashedpassword"
-    role: "EMPLOYEE"
+    role: "MANAGER"
     manager_id: null
     department_id: 1
     active: true

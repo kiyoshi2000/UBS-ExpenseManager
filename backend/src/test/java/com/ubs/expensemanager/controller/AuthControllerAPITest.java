@@ -74,7 +74,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
     User user = User.builder()
         .id(1L)
         .name("Ubs User")
-        .email("user_employee@ubs.com")
+        .email("employee@ubs.com")
         .role(UserRole.EMPLOYEE)
         .build();
 
@@ -317,35 +317,47 @@ public class AuthControllerAPITest extends ControllerAPITest {
     );
   }
 
-
   /**
-   * Verifies if {@link AuthController#register(UserCreateRequest, HttpServletResponse)} will return
-   * 400 when email is empty.
+   * Verifies if {@link AuthController#register(UserCreateRequest, HttpServletResponse)} will
+   * successfully register an EMPLOYEE with a valid manager.
    */
   @Test
-  @DataSet(BASE_DATASET + "input/empty.yml")
+  @DataSet(BASE_DATASET + "input/manager-registered.yml")
+  @ExpectedDataSet(value = BASE_DATASET + "expected/register-employee-with-manager.yml", ignoreCols = "id")
   void shouldRegisterEmployeeWithManager() {
     // given
     final String endpointPath = getPath();
-    final String data = readFixtureFile("__files/auth/request/register-empty-email.json");
+    final String data = readFixtureFile("__files/auth/request/register-employee-with-manager.json");
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
 
     String requestPath = endpointPath + "/register";
 
+    when(passwordEncoder.encode(anyString())).thenReturn("fakehashedpassword");
+    when(jwtUtil.generateToken(any(User.class))).thenReturn("fake-jwt-token");
+
     // when
-    ResponseEntity<String> response = restTemplate.exchange(
-        requestPath,
-        HttpMethod.POST,
-        new HttpEntity<>(data, headers),
-        String.class
-    );
+    var response = restTemplate.exchange(requestPath, HttpMethod.POST,
+        new HttpEntity<>(data, headers), LoginResponse.class);
 
     // then
     assertAll(
         () -> assertNotNull(response),
-        () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode())
+        () -> assertEquals(HttpStatus.CREATED, response.getStatusCode()),
+        () -> {
+          assertNotNull(response.getBody());
+          assertNotNull(response.getBody().getToken());
+          assertNotNull(response.getBody().getUser());
+          assertEquals("Employee User", response.getBody().getUser().getName());
+          assertEquals("employee@ubs.com", response.getBody().getUser().getEmail());
+        },
+        () -> assertNotNull(response.getHeaders().getLocation()),
+        () -> assertNotNull(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE)),
+        () -> assertTrue(
+            Objects.requireNonNull(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE))
+                .contains("jwt_token=")
+        )
     );
   }
 
@@ -438,6 +450,99 @@ public class AuthControllerAPITest extends ControllerAPITest {
         () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode()),
         () -> assertTrue(Objects.requireNonNull(response.getBody())
             .contains("email is required"))
+    );
+  }
+
+  /**
+   * Verifies if {@link AuthController#register(UserCreateRequest, HttpServletResponse)} will return
+   * 400 when password is too short.
+   */
+  @Test
+  @DataSet(BASE_DATASET + "input/empty.yml")
+  void shouldReturn400WhenRegisterPasswordIsTooShort() {
+    // given
+    final String endpointPath = getPath();
+    final String data = readFixtureFile("__files/auth/request/register-short-password.json");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    String requestPath = endpointPath + "/register";
+
+    // when
+    ResponseEntity<String> response = restTemplate.exchange(requestPath, HttpMethod.POST,
+        new HttpEntity<>(data, headers), String.class);
+
+    // then
+    assertAll(
+        () -> assertNotNull(response),
+        () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode()),
+        () -> assertTrue(Objects.requireNonNull(response.getBody())
+            .contains("password must be at least 6 characters"))
+    );
+  }
+
+  /**
+   * Verifies if {@link AuthController#register(UserCreateRequest, HttpServletResponse)} will return
+   * 400 when department does not exist.
+   */
+  @Test
+  @DataSet(BASE_DATASET + "input/empty.yml")
+  void shouldReturn400WhenRegisterDepartmentDoesNotExist() {
+    // given
+    final String endpointPath = getPath();
+    final String data = readFixtureFile("__files/auth/request/register-invalid-department.json");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    String requestPath = endpointPath + "/register";
+
+    when(passwordEncoder.encode(anyString())).thenReturn("fakehashedpassword");
+
+    // when
+    ResponseEntity<String> response = restTemplate.exchange(requestPath, HttpMethod.POST,
+        new HttpEntity<>(data, headers), String.class);
+
+    // then
+    assertAll(
+        () -> assertNotNull(response),
+        () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode()),
+        () -> assertTrue(Objects.requireNonNull(response.getBody())
+            .contains("Department not found with id"))
+    );
+  }
+
+  /**
+   * Verifies if {@link AuthController#logout(HttpServletResponse)} will successfully clear the
+   * JWT cookie.
+   */
+  @Test
+  @DataSet(BASE_DATASET + "input/employee-user-registered.yml")
+  void shouldLogoutAndClearCookie() {
+    // given
+    final String endpointPath = getPath();
+    String requestPath = endpointPath + "/logout";
+
+    HttpHeaders headers = new HttpHeaders();
+
+    // when
+    ResponseEntity<Void> response = restTemplate.exchange(
+        requestPath,
+        HttpMethod.POST,
+        new HttpEntity<>(headers),
+        Void.class
+    );
+
+    // then
+    assertAll(
+        () -> assertNotNull(response),
+        () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+        () -> assertNotNull(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE)),
+        () -> assertTrue(
+            Objects.requireNonNull(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE))
+                .contains("Max-Age=0")
+        )
     );
   }
 }
