@@ -24,6 +24,7 @@
         <rider-junit5.version>1.43.0</rider-junit5.version>
         <springdoc.version>2.5.0</springdoc.version>
         <jsonwebtoken.version>0.12.6</jsonwebtoken.version>
+        <wiremock.version>4.1.5</wiremock.version>
     </properties>
 
     <dependencies>
@@ -126,6 +127,12 @@
             <groupId>com.github.database-rider</groupId>
             <artifactId>rider-junit5</artifactId>
             <version>${rider-junit5.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-contract-wiremock</artifactId>
+            <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
 

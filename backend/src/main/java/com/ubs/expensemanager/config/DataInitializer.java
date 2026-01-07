@@ -6,6 +6,7 @@ import com.ubs.expensemanager.model.UserRole;
 import com.ubs.expensemanager.repository.DepartmentRepository;
 import com.ubs.expensemanager.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ import java.util.List;
  * inserted directly via SQL. </p>
  */
 @Component
+@Profile("!test")
 public class DataInitializer {
 
     private final UserRepository userRepository;
