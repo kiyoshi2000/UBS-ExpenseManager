@@ -488,7 +488,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
    */
   @Test
   @DataSet(BASE_DATASET + "input/empty.yml")
-  void shouldReturn400WhenRegisterDepartmentDoesNotExist() {
+  void shouldReturn404WhenRegisterDepartmentDoesNotExist() {
     // given
     final String endpointPath = getPath();
     final String data = readFixtureFile("__files/auth/request/register-invalid-department.json");
@@ -507,7 +507,7 @@ public class AuthControllerAPITest extends ControllerAPITest {
     // then
     assertAll(
         () -> assertNotNull(response),
-        () -> assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode()),
+        () -> assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode()),
         () -> assertTrue(Objects.requireNonNull(response.getBody())
             .contains("Department not found with id"))
     );
