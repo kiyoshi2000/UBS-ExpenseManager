@@ -58,6 +58,13 @@ export const navigationConfig: MenuItem[] = [
     path: '/users',
     icon: 'Users',
    allowedRoles: ['ROLE_FINANCE'],
+  },
+   {
+    id: 'category',
+    label: 'Category Management',
+    path: '/category',
+    icon: 'ClipboardPenLine',
+   allowedRoles: ['ROLE_FINANCE'],
   }
 ];
 
