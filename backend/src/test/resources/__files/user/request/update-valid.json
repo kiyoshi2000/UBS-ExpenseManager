@@ -1,0 +1,8 @@
+{
+  "email": "employee@ubs.com",
+  "password": "newpassword123",
+  "role": "EMPLOYEE",
+  "name": "Employee Updated",
+  "departmentId": 2,
+  "managerEmail": "manager@ubs.com"
+}

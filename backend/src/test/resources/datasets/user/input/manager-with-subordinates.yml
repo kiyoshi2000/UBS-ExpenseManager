@@ -1,0 +1,32 @@
+PUBLIC.departments:
+  - id: 1
+    name: "IT"
+    daily_budget: 400.0
+    monthly_budget: 12000.0
+    currency: "USD"
+
+PUBLIC.users:
+  - id: 1
+    name: "IT Manager"
+    email: "manager@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "MANAGER"
+    manager_id: null
+    department_id: 1
+    active: true
+  - id: 2
+    name: "Employee One"
+    email: "employee1@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "EMPLOYEE"
+    manager_id: 1
+    department_id: 1
+    active: true
+  - id: 3
+    name: "Employee Two"
+    email: "employee2@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "EMPLOYEE"
+    manager_id: 1
+    department_id: 1
+    active: true

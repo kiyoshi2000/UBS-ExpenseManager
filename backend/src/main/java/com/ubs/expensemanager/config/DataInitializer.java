@@ -1,11 +1,14 @@
 package com.ubs.expensemanager.config;
 
+import com.ubs.expensemanager.model.Currency;
 import com.ubs.expensemanager.model.Department;
 import com.ubs.expensemanager.model.User;
 import com.ubs.expensemanager.model.UserRole;
+import com.ubs.expensemanager.repository.CurrencyRepository;
 import com.ubs.expensemanager.repository.DepartmentRepository;
 import com.ubs.expensemanager.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -20,18 +23,22 @@ import java.util.List;
  * inserted directly via SQL. </p>
  */
 @Component
+@Profile("!test")
 public class DataInitializer {
 
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrencyRepository currencyRepository;
 
     public DataInitializer(UserRepository userRepository, 
                           DepartmentRepository departmentRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          CurrencyRepository currencyRepository) {
         this.userRepository = userRepository;
         this.departmentRepository = departmentRepository;
         this.passwordEncoder = passwordEncoder;
+        this.currencyRepository = currencyRepository;
     }
 
     /**
@@ -40,6 +47,9 @@ public class DataInitializer {
      */
     @PostConstruct
     public void init() {
+        // Initialize currencies first (will create audit records automatically via Envers)
+        initializeCurrencies();
+        
         // Create IT department if it doesn't exist
         Department itDepartment = departmentRepository.findByNameIgnoreCase("IT")
                 .orElseGet(() -> departmentRepository.save(
@@ -100,5 +110,33 @@ public class DataInitializer {
             userRepository.findByEmail(employee.getEmail())
                     .orElseGet(() -> userRepository.save(employee));
         }
+    }
+
+    /**
+     * Initializes base currencies in the system.
+     * USD is the base currency with exchange rate 1.0.
+     * BRL is initialized with an approximate exchange rate.
+     * 
+     * Saving through repository ensures Envers creates audit records automatically.
+     */
+    private void initializeCurrencies() {
+        // Initialize USD (base currency)
+        currencyRepository.findByName("USD")
+                .orElseGet(() -> currencyRepository.save(
+                        Currency.builder()
+                                .name("USD")
+                                .exchangeRate(new BigDecimal("1.000000"))
+                                .build()
+                ));
+
+        // Initialize BRL with approximate exchange rate
+        // This value should be updated regularly via external API
+        currencyRepository.findByName("BRL")
+                .orElseGet(() -> currencyRepository.save(
+                        Currency.builder()
+                                .name("BRL")
+                                .exchangeRate(new BigDecimal("5.500000"))
+                                .build()
+                ));
     }
 }

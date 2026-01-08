@@ -54,6 +54,23 @@ public class GlobalExceptionHandler {
     }
 
     /**
+    * Handles resource not found errors.
+    */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(
+            ResourceNotFoundException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                HttpServletResponse.SC_NOT_FOUND, // 404
+                "Not Found",
+                ex.getMessage(),
+                request.getServletPath(),
+                null
+        );
+    }
+
+    /**
      * Handles invalid enum values in request parameters.
      *
      * <p>Triggered when a request parameter cannot be converted to the required enum type.
@@ -108,7 +125,6 @@ public class GlobalExceptionHandler {
      * @return a {@link ErrorResponse} with status 400 (Bad Request)
      */
     @ExceptionHandler({
-            ResourceNotFoundException.class,
             ManagerRequiredException.class,
             InvalidManagerRoleException.class,
             SelfManagerException.class,

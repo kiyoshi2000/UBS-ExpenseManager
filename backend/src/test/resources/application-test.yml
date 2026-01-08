@@ -1,0 +1,46 @@
+spring:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        jdbc:
+          lob:
+            non_contextual_creation: 1
+        format_sql: true
+    show-sql: false
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: passwordF
+    driverClassName: org.h2.Driver
+  flyway:
+    enabled: false
+  h2:
+    console:
+      enabled: true
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000
+  cookie:
+    secure: false
+
+jwt:
+  secret: test-secret-key-for-testing-purposes-that-is-long-enough-to-be-valid
+  expiration-ms: 3600000
+
+management:
+  endpoints:
+    enabled-by-default: false
+
+logging:
+  pattern:
+    console: "[%-5level] [${${spring:spring.application.name}}] [%t] [%date{ISO8601}] [%c{1}:%M:%L] [%X{traceId},%X{spanId}] %msg %n"
+  level:
+    root: INFO
+    br:
+      com:
+        expensemanager: DEBUG

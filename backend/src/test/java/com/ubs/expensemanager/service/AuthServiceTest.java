@@ -3,6 +3,8 @@ package com.ubs.expensemanager.service;
 import com.ubs.expensemanager.dto.request.LoginRequest;
 import com.ubs.expensemanager.dto.request.UserCreateRequest;
 import com.ubs.expensemanager.dto.response.LoginResponse;
+import com.ubs.expensemanager.dto.response.UserResponse;
+import com.ubs.expensemanager.mapper.UserMapper;
 import com.ubs.expensemanager.model.User;
 import com.ubs.expensemanager.model.UserRole;
 import com.ubs.expensemanager.security.JwtUtil;
@@ -40,6 +42,9 @@ class AuthServiceTest {
 
     @Mock
     private JwtUtil jwtUtil;
+
+    @Mock
+    private UserMapper userMapper;
 
     @InjectMocks
     private AuthService authService;
@@ -89,8 +94,15 @@ class AuthServiceTest {
      */
     @Test
     void shouldRegisterEmployeeWithManagerAndReturnToken() {
+        UserResponse userResponse = UserResponse.builder()
+                .email("employee@ubs.com")
+                .name("Employee")
+                .role("ROLE_EMPLOYEE")
+                .build();
+
         when(userService.createUser(employeeCreateRequest)).thenReturn(employee);
         when(jwtUtil.generateToken(employee)).thenReturn("jwt-token");
+        when(userMapper.toResponse(employee)).thenReturn(userResponse);
 
         LoginResponse response = authService.register(employeeCreateRequest);
 
@@ -105,11 +117,17 @@ class AuthServiceTest {
     @Test
     void shouldLoginSuccessfully() {
         Authentication authentication = mock(Authentication.class);
+        UserResponse userResponse = UserResponse.builder()
+                .email("employee@ubs.com")
+                .name("Employee")
+                .role("ROLE_EMPLOYEE")
+                .build();
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(employee);
         when(jwtUtil.generateToken(employee)).thenReturn("jwt-token");
+        when(userMapper.toResponse(employee)).thenReturn(userResponse);
 
         LoginResponse response = authService.login(loginRequest);
 

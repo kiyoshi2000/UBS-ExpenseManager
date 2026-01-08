@@ -417,7 +417,7 @@ test.describe('User Management Full Workflow', () => {
       await expect(deactivatedEmployeeRow.getByText('Inactive')).toBeVisible();
 
       // Verify Edit button is no longer visible for inactive user
-      await expect(deactivatedEmployeeRow.getByRole('button', { name: /edit/i })).not.toBeVisible();
+      await expect(deactivatedEmployeeRow.getByRole('button', { name: /edit/i })).toBeHidden();
     });
 
     // ============================================
