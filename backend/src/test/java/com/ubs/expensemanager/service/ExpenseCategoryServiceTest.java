@@ -4,8 +4,8 @@ import com.ubs.expensemanager.dto.request.ExpenseCategoryCreateRequest;
 import com.ubs.expensemanager.dto.request.ExpenseCategoryUpdateRequest;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryAuditResponse;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryResponse;
-import com.ubs.expensemanager.exception.ConflictException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
+import com.ubs.expensemanager.mapper.ExpenseCategoryMapper;
 import com.ubs.expensemanager.model.Currency;
 import com.ubs.expensemanager.model.ExpenseCategory;
 import com.ubs.expensemanager.repository.CurrencyRepository;
@@ -27,7 +27,6 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -38,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseCategoryServiceTest {
@@ -59,6 +59,9 @@ class ExpenseCategoryServiceTest {
 
     @Mock
     AuditQuery auditQuery;
+
+    @Mock
+    ExpenseCategoryMapper expenseCategoryMapper;
 
     @InjectMocks
     ExpenseCategoryService expenseCategoryService;
@@ -112,6 +115,19 @@ class ExpenseCategoryServiceTest {
                 .monthlyBudget(new BigDecimal("1500.00"))
                 .currency(usdCurrency)
                 .build();
+
+        // Setup default mapper behavior (lenient because not all tests use it)
+        lenient().when(expenseCategoryMapper.toResponse(any(ExpenseCategory.class))).thenAnswer(inv -> {
+            ExpenseCategory category = inv.getArgument(0);
+            return ExpenseCategoryResponse.builder()
+                    .id(category.getId())
+                    .name(category.getName())
+                    .dailyBudget(category.getDailyBudget())
+                    .monthlyBudget(category.getMonthlyBudget())
+                    .currencyName(category.getCurrency() != null ? category.getCurrency().getName() : null)
+                    .exchangeRate(category.getCurrency() != null ? category.getCurrency().getExchangeRate() : null)
+                    .build();
+        });
     }
 
     @Test
