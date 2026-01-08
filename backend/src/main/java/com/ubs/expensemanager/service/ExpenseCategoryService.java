@@ -6,17 +6,12 @@ import com.ubs.expensemanager.dto.response.ExpenseCategoryAuditResponse;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryResponse;
 import com.ubs.expensemanager.exception.ConflictException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
+import com.ubs.expensemanager.mapper.ExpenseCategoryMapper;
 import com.ubs.expensemanager.model.Currency;
 import com.ubs.expensemanager.model.ExpenseCategory;
 import com.ubs.expensemanager.repository.CurrencyRepository;
 import com.ubs.expensemanager.repository.ExpenseCategoryRepository;
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.envers.AuditReaderFactory;
-import org.hibernate.envers.RevisionType;
-import org.hibernate.envers.query.AuditEntity;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -24,6 +19,11 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.RevisionType;
+import org.hibernate.envers.query.AuditEntity;
+import org.springframework.stereotype.Service;
 
 /**
  * Service responsible for handling business logic related to Expense Categories.
@@ -38,6 +38,7 @@ public class ExpenseCategoryService {
     private final ExpenseCategoryRepository expenseCategoryRepository;
     private final CurrencyRepository currencyRepository;
     private final EntityManager entityManager;
+    private final ExpenseCategoryMapper expenseCategoryMapper;
 
     /**
      * Creates a new expense category.
@@ -63,7 +64,7 @@ public class ExpenseCategoryService {
 
         ExpenseCategory savedCategory = expenseCategoryRepository.save(category);
 
-        return toResponse(savedCategory);
+        return expenseCategoryMapper.toResponse(savedCategory);
     }
 
     /**
@@ -74,7 +75,7 @@ public class ExpenseCategoryService {
     public List<ExpenseCategoryResponse> listAll() {
         return expenseCategoryRepository.findAll()
                 .stream()
-                .map(this::toResponse)
+                .map(expenseCategoryMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -95,7 +96,7 @@ public class ExpenseCategoryService {
         if (dateTime == null) {
             ExpenseCategory category = expenseCategoryRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Expense category not found"));
-            return toResponse(category);
+            return expenseCategoryMapper.toResponse(category);
         }
         // Else, find the audit relative to that provided date
         
@@ -119,7 +120,7 @@ public class ExpenseCategoryService {
             throw new ResourceNotFoundException("Expense category not found in audit history");
         }
         
-        return toResponse((ExpenseCategory) results.getFirst());
+        return expenseCategoryMapper.toResponse((ExpenseCategory) results.getFirst());
     }
 
     /**
@@ -191,22 +192,7 @@ public class ExpenseCategoryService {
 
         ExpenseCategory updatedCategory = expenseCategoryRepository.save(category);
 
-        return toResponse(updatedCategory);
+        return expenseCategoryMapper.toResponse(updatedCategory);
     }
 
-
-
-    /**
-     * Maps an ExpenseCategory entity to an ExpenseCategoryResponse DTO.
-     */
-    private ExpenseCategoryResponse toResponse(ExpenseCategory category) {
-        return ExpenseCategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .dailyBudget(category.getDailyBudget())
-                .monthlyBudget(category.getMonthlyBudget())
-                .currencyName(category.getCurrency() != null ? category.getCurrency().getName() : null)
-                .exchangeRate(category.getCurrency() != null ? category.getCurrency().getExchangeRate() : null)
-                .build();
-    }
 }

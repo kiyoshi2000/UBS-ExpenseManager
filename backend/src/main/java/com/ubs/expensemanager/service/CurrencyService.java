@@ -1,13 +1,12 @@
 package com.ubs.expensemanager.service;
 
 import com.ubs.expensemanager.dto.response.CurrencyResponse;
-import com.ubs.expensemanager.model.Currency;
+import com.ubs.expensemanager.mapper.CurrencyMapper;
 import com.ubs.expensemanager.repository.CurrencyRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 /**
  * Service responsible for handling business logic related to Currencies.
@@ -21,6 +20,7 @@ import java.util.stream.Collectors;
 public class CurrencyService {
 
     private final CurrencyRepository currencyRepository;
+    private final CurrencyMapper currencyMapper;
 
     /**
      * Retrieves all available currencies.
@@ -30,18 +30,8 @@ public class CurrencyService {
     public List<CurrencyResponse> listAll() {
         return currencyRepository.findAll()
                 .stream()
-                .map(this::toResponse)
+                .map(currencyMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Maps a Currency entity to a CurrencyResponse DTO.
-     */
-    private CurrencyResponse toResponse(Currency currency) {
-        return CurrencyResponse.builder()
-                .id(currency.getId())
-                .name(currency.getName())
-                .exchangeRate(currency.getExchangeRate())
-                .build();
-    }
 }

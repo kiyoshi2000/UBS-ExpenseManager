@@ -1,10 +1,17 @@
 package com.ubs.expensemanager.service;
 
+import com.ubs.expensemanager.dto.request.UserCreateRequest;
 import com.ubs.expensemanager.dto.request.UserFilterRequest;
 import com.ubs.expensemanager.dto.request.UserUpdateRequest;
-import com.ubs.expensemanager.dto.request.UserCreateRequest;
 import com.ubs.expensemanager.dto.response.UserResponse;
-import com.ubs.expensemanager.exception.*;
+import com.ubs.expensemanager.exception.InvalidManagerRoleException;
+import com.ubs.expensemanager.exception.ManagerHasSubordinatesException;
+import com.ubs.expensemanager.exception.ManagerRequiredException;
+import com.ubs.expensemanager.exception.ResourceNotFoundException;
+import com.ubs.expensemanager.exception.SelfManagerException;
+import com.ubs.expensemanager.exception.UserAlreadyActiveException;
+import com.ubs.expensemanager.exception.UserExistsException;
+import com.ubs.expensemanager.mapper.UserMapper;
 import com.ubs.expensemanager.model.Department;
 import com.ubs.expensemanager.model.User;
 import com.ubs.expensemanager.model.UserRole;
@@ -13,16 +20,11 @@ import com.ubs.expensemanager.repository.UserRepository;
 import com.ubs.expensemanager.repository.specification.UserSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
@@ -30,65 +32,7 @@ public class UserService {
     private final UserRepository repository;
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
-
-    /**
-     * Validates and assigns a department to the user.
-     *
-     * @param user the user being created or updated
-     * @param departmentId the ID of the department to assign
-     * @throws ResourceNotFoundException if no department is found with the given ID
-     */
-    private void validateAndSetDepartment(User user, Long departmentId) {
-        Department department = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Department not found with id: " + departmentId));
-        user.setDepartment(department);
-    }
-
-    /**
-     * Validates whether a manager can be associated with the given user and,
-     * if valid, assigns it.
-     *
-     * <p>Rules enforced:</p>
-     * <ul>
-     *   <li>If the role is {@link UserRole#EMPLOYEE}, a manager email is mandatory.</li>
-     *   <li>The manager must exist in the system.</li>
-     *   <li>The manager must have the {@link UserRole#MANAGER} role.</li>
-     *   <li>A user cannot be assigned as their own manager.</li>
-     * </ul>
-     *
-     * @param user the user being created or updated
-     * @param managerEmail the email of the manager to be assigned; may be {@code null}
-     * when the role does not require a manager
-     * @param role the role of the user, used to determine whether a manager is required
-     *
-     * @throws ManagerRequiredException if an EMPLOYEE is created without a manager
-     * @throws InvalidManagerRoleException if the specified manager does not have MANAGER role
-     * @throws SelfManagerException if the user is assigned as their own manager
-     * @throws ResourceNotFoundException if no user is found with the given manager email
-     */
-    private void validateAndSetManager(User user, String managerEmail, UserRole role) {
-        // If manager email isn't provided and the user is an employee throw error
-        if (managerEmail == null)
-            if (role == UserRole.EMPLOYEE)
-                throw new ManagerRequiredException();
-            else // do not validate if the email is empty and it's not an employee
-                return;
-
-        User manager = repository.findByEmail(managerEmail)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Manager not found with email: " + managerEmail));
-
-        if (manager.getRole() != UserRole.MANAGER)
-            throw new InvalidManagerRoleException();
-
-        // This will only be triggered on UPDATES, because if you try to create the user
-        // with his own email as a manager, you will be stopped in manager not found
-        if (user.getId() != null && manager.getId().equals(user.getId()))
-            throw new SelfManagerException();
-
-        user.setManager(manager);
-    }
+    private final UserMapper userMapper;
 
     /**
      * Creates a new user (used by AuthService during registration).
@@ -133,7 +77,7 @@ public class UserService {
         validateAndSetManager(user, request.getManagerEmail(), user.getRole());
 
         User updatedUser = repository.save(user);
-        return UserResponse.fromEntity(updatedUser);
+        return userMapper.toResponse(updatedUser);
     }
 
     public Page<UserResponse> findAll(UserFilterRequest filters, Pageable pageable) {
@@ -144,13 +88,13 @@ public class UserService {
         spec = spec.and(UserSpecifications.nameOrEmailContains(filters.getSearch()));
         spec = spec.and(UserSpecifications.withDepartmentId(filters.getDepartmentId()));
 
-        return repository.findAll(spec, pageable).map(UserResponse::fromEntity);
+        return repository.findAll(spec, pageable).map(userMapper::toResponse);
     }
 
     public UserResponse findById(Long id) {
         User user = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("There is no user with id " + id));
-        return UserResponse.fromEntity(user);
+        return userMapper.toResponse(user);
     }
 
     @Transactional
@@ -177,6 +121,66 @@ public class UserService {
             throw new UserAlreadyActiveException();
 
         user.setActive(true);
-        return UserResponse.fromEntity(user);
+        return userMapper.toResponse(user);
     }
+
+    /**
+     * Validates and assigns a department to the user.
+     *
+     * @param user the user being created or updated
+     * @param departmentId the ID of the department to assign
+     * @throws ResourceNotFoundException if no department is found with the given ID
+     */
+    private void validateAndSetDepartment(User user, Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Department not found with id: " + departmentId));
+        user.setDepartment(department);
+    }
+
+    /**
+     * Validates whether a manager can be associated with the given user and,
+     * if valid, assigns it.
+     *
+     * <p>Rules enforced:</p>
+     * <ul>
+     *   <li>If the role is {@link UserRole#EMPLOYEE}, a manager email is mandatory.</li>
+     *   <li>The manager must exist in the system.</li>
+     *   <li>The manager must have the {@link UserRole#MANAGER} role.</li>
+     *   <li>A user cannot be assigned as their own manager.</li>
+     * </ul>
+     *
+     * @param user the user being created or updated
+     * @param managerEmail the email of the manager to be assigned; may be {@code null}
+     * when the role does not require a manager
+     * @param role the role of the user, used to determine whether a manager is required
+     *
+     * @throws ManagerRequiredException if an EMPLOYEE is created without a manager
+     * @throws InvalidManagerRoleException if the specified manager does not have MANAGER role
+     * @throws SelfManagerException if the user is assigned as their own manager
+     * @throws ResourceNotFoundException if no user is found with the given manager email
+     */
+    private void validateAndSetManager(User user, String managerEmail, UserRole role) {
+        // If manager email isn't provided and the user is an employee throw error
+        if (managerEmail == null)
+            if (role == UserRole.EMPLOYEE)
+                throw new ManagerRequiredException();
+            else // do not validate if the email is empty and it's not an employee
+                return;
+
+        User manager = repository.findByEmail(managerEmail)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Manager not found with email: " + managerEmail));
+
+        if (manager.getRole() != UserRole.MANAGER)
+            throw new InvalidManagerRoleException();
+
+        // This will only be triggered on UPDATES, because if you try to create the user
+        // with his own email as a manager, you will be stopped in manager not found
+        if (user.getId() != null && manager.getId().equals(user.getId()))
+            throw new SelfManagerException();
+
+        user.setManager(manager);
+    }
+
 }

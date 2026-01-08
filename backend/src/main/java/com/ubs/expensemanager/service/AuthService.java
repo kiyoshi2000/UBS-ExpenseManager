@@ -1,5 +1,6 @@
 package com.ubs.expensemanager.service;
 
+import com.ubs.expensemanager.mapper.UserMapper;
 import com.ubs.expensemanager.security.JwtUtil;
 import com.ubs.expensemanager.dto.request.LoginRequest;
 import com.ubs.expensemanager.dto.request.UserCreateRequest;
@@ -27,6 +28,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final UserMapper userMapper;
 
     /**
      * Registers a new user in the system.
@@ -45,7 +47,7 @@ public class AuthService {
 
         return LoginResponse.builder()
                 .token(token)
-                .user(UserResponse.fromEntity(savedUser))
+                .user(userMapper.toResponse(savedUser))
                 .build();
     }
 
@@ -72,7 +74,7 @@ public class AuthService {
 
         return LoginResponse.builder()
                 .token(token)
-                .user(UserResponse.fromEntity(user))
+                .user(userMapper.toResponse(user))
                 .build();
     }
 }
