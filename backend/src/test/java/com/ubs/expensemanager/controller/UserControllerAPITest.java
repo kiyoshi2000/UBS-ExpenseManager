@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.database.rider.core.api.configuration.DBUnit;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.ubs.expensemanager.dto.response.UserResponse;
 import java.util.List;
@@ -29,12 +28,7 @@ import org.springframework.http.ResponseEntity;
 
 /**
  * Integration test for {@link UserController}
- *
- * <p>Tests all user management endpoints with DBRider database fixtures.
- * Uses {@code disableSequenceFiltering} to support self-referencing foreign keys (User.manager_id →
- * User.id).</p>
  */
-@DBUnit(qualifiedTableNames = true, schema = "PUBLIC", disableSequenceFiltering = true)
 public class UserControllerAPITest extends ControllerAPITest {
 
   private static final String BASE_DATASET = "datasets/user/";
