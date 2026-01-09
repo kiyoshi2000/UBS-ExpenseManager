@@ -63,7 +63,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-        filterChain.doFilter(request, response);
       } catch (ExpiredJwtException e) {
         log.warn("JWT token is expired: {}", e.getMessage());
       } catch (MalformedJwtException e) {
@@ -71,8 +70,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       } catch (SignatureException e) {
         log.warn("JWT signature validation failed: {}", e.getMessage());
       } catch (Exception e) {
-        log.error("Error processing JWT token: {}", e.getMessage());
+        log.error("Error processing JWT token: {}", e.getMessage(), e);
       }
+
+      filterChain.doFilter(request, response);
     }
 
     private String extractTokenFromCookie(HttpServletRequest request) {

@@ -1,0 +1,8 @@
+{
+  "amount": 25.50,
+  "description": "Coffee meeting with client",
+  "expenseDate": "2026-01-09",
+  "expenseCategoryId": 101,
+  "currencyName": "USD",
+  "receiptUrl": "https://example.com/receipts/new-receipt.pdf"
+}

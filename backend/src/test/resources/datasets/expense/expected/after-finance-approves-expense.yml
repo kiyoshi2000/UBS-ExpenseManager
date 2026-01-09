@@ -1,0 +1,60 @@
+PUBLIC.departments:
+  - id: 101
+    name: "IT"
+    daily_budget: 400.0
+    monthly_budget: 12000.0
+    currency: "USD"
+  - id: 102
+    name: "Finance"
+    daily_budget: 500.0
+    monthly_budget: 15000.0
+    currency: "USD"
+
+PUBLIC.currencies:
+  - id: 101
+    name: "USD"
+    exchange_rate: 1.000000
+
+PUBLIC.expense_categories:
+  - id: 101
+    name: "Food"
+    daily_budget: 100.0
+    monthly_budget: 3000.0
+    currency_id: 101
+
+PUBLIC.users:
+  - id: 101
+    name: "Jane Manager"
+    email: "manager@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "MANAGER"
+    manager_id: null
+    department_id: 101
+    active: true
+  - id: 103
+    name: "Alice Finance"
+    email: "finance@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "FINANCE"
+    manager_id: null
+    department_id: 102
+    active: true
+  - id: 104
+    name: "John Employee"
+    email: "employee@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "EMPLOYEE"
+    manager_id: 101
+    department_id: 101
+    active: true
+
+PUBLIC.expenses:
+  - id: 101
+    amount: 50.00
+    description: "Team lunch"
+    expense_date: "2026-01-08"
+    user_id: 104
+    expense_category_id: 101
+    currency_id: 101
+    receipt_url: "https://example.com/receipts/1.pdf"
+    status: "APPROVED_BY_FINANCE"

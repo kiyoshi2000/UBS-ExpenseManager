@@ -41,6 +41,9 @@ logging:
     console: "[%-5level] [${${spring:spring.application.name}}] [%t] [%date{ISO8601}] [%c{1}:%M:%L] [%X{traceId},%X{spanId}] %msg %n"
   level:
     root: INFO
-    br:
-      com:
+    com:
+      ubs:
         expensemanager: DEBUG
+    org:
+      springframework:
+        security: DEBUG

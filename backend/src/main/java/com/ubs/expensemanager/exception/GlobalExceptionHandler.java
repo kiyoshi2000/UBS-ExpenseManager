@@ -167,6 +167,69 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles invalid expense status transitions.
+     *
+     * @param ex the thrown Exception
+     * @param request the HTTP request that triggered the exception
+     * @return a {@link ErrorResponse} with status 400 (Bad Request)
+     */
+    @ExceptionHandler(InvalidStatusTransitionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidStatusTransition(
+            InvalidStatusTransitionException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                HttpServletResponse.SC_BAD_REQUEST,
+                "Invalid status transition",
+                ex.getMessage(),
+                request.getServletPath(),
+                null
+        );
+    }
+
+    /**
+     * Handles unauthorized expense access attempts.
+     *
+     * @param ex the thrown Exception
+     * @param request the HTTP request that triggered the exception
+     * @return a {@link ErrorResponse} with status 403 (Forbidden)
+     */
+    @ExceptionHandler(UnauthorizedExpenseAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedExpenseAccess(
+            UnauthorizedExpenseAccessException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                HttpServletResponse.SC_FORBIDDEN,
+                "Unauthorized access",
+                ex.getMessage(),
+                request.getServletPath(),
+                null
+        );
+    }
+
+    /**
+     * Handles budget exceeded errors (reserved for future use).
+     *
+     * @param ex the thrown Exception
+     * @param request the HTTP request that triggered the exception
+     * @return a {@link ErrorResponse} with status 400 (Bad Request)
+     */
+    @ExceptionHandler(BudgetExceededException.class)
+    public ResponseEntity<ErrorResponse> handleBudgetExceeded(
+            BudgetExceededException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                HttpServletResponse.SC_BAD_REQUEST,
+                "Budget exceeded",
+                ex.getMessage(),
+                request.getServletPath(),
+                null
+        );
+    }
+
+    /**
      * Handles uncaught exceptions
      * @param ex the thrown Exception
      * @param request the HTTP request that triggered the exception
