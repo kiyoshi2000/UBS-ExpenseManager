@@ -26,7 +26,7 @@ export const DepartmentPage = () => {
     try {
       setLoading(true);
       const data = await getDepartments();
-      setDepartments(data);
+      setDepartments([...data]);
     } catch {
       setError("Failed to load departments");
     } finally {
@@ -83,9 +83,9 @@ export const DepartmentPage = () => {
       <CreateDepartmentDialog
         open={openCreate}
         onOpenChange={setOpenCreate}
-        onSuccess={() => {
+        onSuccess={async () => {
           setOpenCreate(false);
-          load();
+          await load();
         }}
       />
 

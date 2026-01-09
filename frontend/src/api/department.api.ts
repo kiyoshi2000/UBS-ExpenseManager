@@ -1,3 +1,4 @@
+import api from "@/services/api";
 import { Department } from "../types/department";
 
 export interface DepartmentPayload {
@@ -8,22 +9,11 @@ export interface DepartmentPayload {
 }
 
 /**
- * Centralized response handler
- */
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "Unexpected API error");
-  }
-  return response.json();
-}
-
-/**
  * GET /api/departments
  */
 export async function getDepartments(): Promise<Department[]> {
-  const response = await fetch("/api/departments");
-  return handleResponse<Department[]>(response);
+  const response = await api.get<Department[]>("/api/departments");
+  return response.data;
 }
 
 /**
@@ -32,13 +22,8 @@ export async function getDepartments(): Promise<Department[]> {
 export async function createDepartment(
   payload: DepartmentPayload
 ): Promise<Department> {
-  const response = await fetch("/api/departments", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  return handleResponse<Department>(response);
+  const response = await api.post<Department>("/api/departments", payload);
+  return response.data;
 }
 
 /**
@@ -48,24 +33,16 @@ export async function updateDepartment(
   id: number,
   payload: DepartmentPayload
 ): Promise<Department> {
-  const response = await fetch(`/api/departments/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  return handleResponse<Department>(response);
+  const response = await api.put<Department>(
+    `/api/departments/${id}`,
+    payload
+  );
+  return response.data;
 }
 
 /**
  * DELETE /api/departments/{id}
  */
 export async function deleteDepartment(id: number): Promise<void> {
-  const response = await fetch(`/api/departments/${id}`, {
-    method: "DELETE",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete department");
-  }
+  await api.delete(`/api/departments/${id}`);
 }
