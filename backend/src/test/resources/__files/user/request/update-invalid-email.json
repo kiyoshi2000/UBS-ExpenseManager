@@ -1,0 +1,8 @@
+{
+  "email": "invalid-email-format",
+  "password": "password123",
+  "role": "EMPLOYEE",
+  "name": "Employee Name",
+  "departmentId": 1,
+  "managerEmail": "manager@ubs.com"
+}

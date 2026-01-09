@@ -1,0 +1,7 @@
+PUBLIC.departments:
+  - id: 1
+    name: "TI"
+    daily_budget: 10.0
+    monthly_budget: 10.0
+    currency: "USD"
+

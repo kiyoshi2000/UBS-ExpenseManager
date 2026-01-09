@@ -1,0 +1,24 @@
+PUBLIC.departments:
+  - id: 1
+    name: "TI"
+    daily_budget: 10.0
+    monthly_budget: 10.0
+    currency: "USD"
+
+PUBLIC.users:
+  - id: 1
+    name: "Manager User"
+    email: "manager@ubs.com"
+    password: "fakehashedpassword"
+    role: "MANAGER"
+    manager_id: null
+    department_id: 1
+    active: true
+  - id: 2
+    name: "Employee User"
+    email: "employee@ubs.com"
+    password: "fakehashedpassword"
+    role: "EMPLOYEE"
+    manager_id: 1
+    department_id: 1
+    active: true
