@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Edit} from "lucide-react";
 import { DataTable, ColumnDef, RowAction } from "@/components/DataTable";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { ActionButton } from "@/components/ui/ActionButton";
@@ -46,18 +46,13 @@ export const DepartmentPage = () => {
   ];
 
   const actions: RowAction<Department>[] = [
-    {
-      label: "Edit",
-      onClick: (row) => setEditing(row),
-      shouldShow: () => canEdit,
-    },
-    {
-      label: "Delete",
-      onClick: (row) => setToDelete(row),
-      color: "red",
-      shouldShow: () => canEdit,
-    },
-  ];
+  {
+    label: "Edit",
+    icon: <Edit className="h-4 w-4" />,
+    onClick: (row) => setEditing(row),
+    shouldShow: () => canEdit,
+  },
+];
 
   return (
     <div className="space-y-6">

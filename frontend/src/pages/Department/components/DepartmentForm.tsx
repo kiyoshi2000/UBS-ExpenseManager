@@ -7,6 +7,7 @@ import {
   DepartmentFormData,
 } from "@/utils/validation";
 import { Department } from "../types/department";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   initialData?: Department | null;
@@ -78,17 +79,14 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <button
-          type="submit"
-          disabled={!isValid || isSubmitting}
-          className={`h-10 rounded px-4 text-white ${
-            isValid
-              ? "bg-blue-600 hover:bg-blue-700"
-              : "bg-gray-400 cursor-not-allowed"
-          }`}
+        <Button
+        type="submit"
+        variant="default"
+        size="lg"
+        disabled={!isValid || isSubmitting}
         >
-          {isSubmitting ? "Saving..." : "Save"}
-        </button>
+        {isSubmitting ? "Saving..." : "Save"}
+      </Button>
       </div>
     </form>
   );

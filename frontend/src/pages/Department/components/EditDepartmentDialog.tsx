@@ -1,6 +1,6 @@
 import { Department } from "../types/department";
 import { updateDepartment } from "@/api/department.api";
-import { DepartmentFormData } from "@/utils/validation/department.schema";
+import { DepartmentFormData } from "@/utils/validation";
 import { DepartmentForm } from "./DepartmentForm";
 import {
   Dialog,
