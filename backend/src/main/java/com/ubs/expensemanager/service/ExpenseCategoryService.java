@@ -23,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.query.AuditEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -72,11 +74,8 @@ public class ExpenseCategoryService {
      *
      * @return list of categories
      */
-    public List<ExpenseCategoryResponse> listAll() {
-        return expenseCategoryRepository.findAll()
-                .stream()
-                .map(expenseCategoryMapper::toResponse)
-                .collect(Collectors.toList());
+    public Page<ExpenseCategoryResponse> listAll(Pageable pageable) {
+        return expenseCategoryRepository.findAll(pageable).map(expenseCategoryMapper::toResponse);
     }
 
     /**
