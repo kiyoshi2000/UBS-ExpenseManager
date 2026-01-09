@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
+
 /**
  * DTO Response representing a Department returned by the API.
  */

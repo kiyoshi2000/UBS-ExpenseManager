@@ -23,7 +23,10 @@ export const EditDepartmentDialog = ({
   onSuccess,
 }: Props) => {
   async function handleSubmit(data: DepartmentFormData) {
-    await updateDepartment(department.id, data);
+    await updateDepartment(department.id, {
+      ...data,
+      dailyBudget: data.dailyBudget ?? null,
+    });
     onSuccess();
   }
 

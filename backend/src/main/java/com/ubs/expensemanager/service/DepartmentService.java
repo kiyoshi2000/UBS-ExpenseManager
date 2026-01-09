@@ -39,10 +39,11 @@ public class DepartmentService {
         }
 
         Department department = Department.builder()
-            .name(request.getName())
-            .monthlyBudget(request.getMonthlyBudget())
-            .currency(request.getCurrency())
-            .build();
+                .name(request.getName())
+                .monthlyBudget(request.getMonthlyBudget())
+                .dailyBudget(request.getDailyBudget())
+                .currency(request.getCurrency())
+                .build();
 
         Department savedDepartment = departmentRepository.save(department);
 
@@ -81,6 +82,7 @@ public class DepartmentService {
 
         department.setName(request.getName());
         department.setMonthlyBudget(request.getMonthlyBudget());
+        department.setDailyBudget(request.getDailyBudget()); // ✅ FIX
         department.setCurrency(request.getCurrency());
 
         Department updatedDepartment = departmentRepository.save(department);
@@ -109,6 +111,7 @@ public class DepartmentService {
                 .id(department.getId())
                 .name(department.getName())
                 .monthlyBudget(department.getMonthlyBudget())
+                .dailyBudget(department.getDailyBudget())
                 .currency(department.getCurrency())
                 .build();
     }

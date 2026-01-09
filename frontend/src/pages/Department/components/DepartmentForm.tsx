@@ -25,7 +25,7 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
     defaultValues: {
       name: initialData?.name ?? "",
       monthlyBudget: initialData?.monthlyBudget ?? 0,
-      dailyBudget: initialData?.dailyBudget,
+      dailyBudget: initialData?.dailyBudget ?? null,
       currency: initialData?.currency ?? "USD",
     },
   });
@@ -36,7 +36,9 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
       <div className="space-y-2">
         <Label>Name *</Label>
         <Input {...register("name")} />
-        {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
+        {errors.name && (
+          <p className="text-sm text-red-600">{errors.name.message}</p>
+        )}
       </div>
 
       {/* Monthly Budget */}
@@ -44,22 +46,30 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
         <Label>Monthly Budget *</Label>
         <Input
           type="number"
-          {...register("monthlyBudget", { valueAsNumber: true })}
+          {...register("monthlyBudget", {
+            valueAsNumber: true,
+          })}
         />
         {errors.monthlyBudget && (
-          <p className="text-sm text-red-600">{errors.monthlyBudget.message}</p>
+          <p className="text-sm text-red-600">
+            {errors.monthlyBudget.message}
+          </p>
         )}
       </div>
 
       {/* Daily Budget */}
       <div className="space-y-2">
         <Label>Daily Budget (optional)</Label>
-        <Input
+          <Input
           type="number"
-          {...register("dailyBudget", { valueAsNumber: true })}
+          {...register("dailyBudget", {
+            valueAsNumber: true,
+          })}
         />
         {errors.dailyBudget && (
-          <p className="text-sm text-red-600">{errors.dailyBudget.message}</p>
+          <p className="text-sm text-red-600">
+            {errors.dailyBudget.message}
+          </p>
         )}
       </div>
 
@@ -74,19 +84,21 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
           <option value="BRL">BRL</option>
         </select>
         {errors.currency && (
-          <p className="text-sm text-red-600">{errors.currency.message}</p>
+          <p className="text-sm text-red-600">
+            {errors.currency.message}
+          </p>
         )}
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
         <Button
-        type="submit"
-        variant="default"
-        size="lg"
-        disabled={!isValid || isSubmitting}
+          type="submit"
+          variant="default"
+          size="lg"
+          disabled={!isValid || isSubmitting}
         >
-        {isSubmitting ? "Saving..." : "Save"}
-      </Button>
+          {isSubmitting ? "Saving..." : "Save"}
+        </Button>
       </div>
     </form>
   );

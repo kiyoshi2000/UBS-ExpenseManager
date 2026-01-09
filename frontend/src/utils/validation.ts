@@ -103,16 +103,25 @@ export const hasValidationErrors = (
 };
 
 import { z } from "zod";
+
 /* =======================
    DEPARTMENT
 ======================= */
 
 export const departmentSchema = z.object({
   name: z.string().min(1, "Name is required"),
+
   monthlyBudget: z
+    .number({ invalid_type_error: "Monthly budget is required" })
+    .min(0, "Monthly budget must be >= 0"),
+
+  dailyBudget: z
     .number()
-    .min(0, "Monthly budget must be positive"),
-  currency: z.string().min(1, "Currency is required"),
+    .min(0, "Daily budget must be >= 0")
+    .nullable()
+    .optional(),
+
+  currency: z.enum(["USD", "BRL"]),
 });
 
 export type DepartmentFormData = z.infer<typeof departmentSchema>;
