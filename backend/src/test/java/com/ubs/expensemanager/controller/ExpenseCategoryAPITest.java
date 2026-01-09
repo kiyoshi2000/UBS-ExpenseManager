@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.core.api.dataset.ExpectedDataSet;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryResponse;
@@ -13,6 +16,8 @@ import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -176,11 +181,11 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         final String endpointPath = getPath();
 
         // when
-        ResponseEntity<List<ExpenseCategoryResponse>> response = restTemplate.exchange(
+        ResponseEntity<RestResponsePage<ExpenseCategoryResponse>> response = restTemplate.exchange(
                 endpointPath,
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<ExpenseCategoryResponse>>() {}
+                new ParameterizedTypeReference<RestResponsePage<ExpenseCategoryResponse>>() {}
         );
 
         // then
@@ -188,10 +193,10 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
                 () -> assertNotNull(response),
                 () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
                 () -> assertNotNull(response.getBody()),
-                () -> assertEquals(1, Objects.requireNonNull(response.getBody()).size()),
+                () -> assertEquals(1, Objects.requireNonNull(response.getBody()).getContent().size()),
                 () -> {
                     assertNotNull(response.getBody());
-                    ExpenseCategoryResponse category = response.getBody().getFirst();
+                    ExpenseCategoryResponse category = response.getBody().getContent().getFirst();
                     assertEquals("Food", category.getName());
                     assertEquals(100.00, category.getDailyBudget().doubleValue());
                     assertEquals(3000.00, category.getMonthlyBudget().doubleValue());
@@ -327,5 +332,33 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
                 () -> assertNotNull(response),
                 () -> assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode())
         );
+    }
+
+    /**
+     * Helper class to deserialize paginated responses from REST API.
+     *
+     * <p>Jackson cannot directly deserialize {@link org.springframework.data.domain.Page}
+     * because it's an interface. This class provides a concrete implementation that can be used with
+     * {@link ParameterizedTypeReference}.</p>
+     */
+    static class RestResponsePage<T> extends PageImpl<T> {
+
+        @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+        public RestResponsePage(@JsonProperty("content") List<T> content,
+                                @JsonProperty("number") int number,
+                                @JsonProperty("size") int size,
+                                @JsonProperty("totalElements") Long totalElements,
+                                @JsonProperty("pageable") JsonNode pageable,
+                                @JsonProperty("last") boolean last,
+                                @JsonProperty("totalPages") int totalPages,
+                                @JsonProperty("sort") JsonNode sort,
+                                @JsonProperty("first") boolean first,
+                                @JsonProperty("numberOfElements") int numberOfElements) {
+            super(content, PageRequest.of(number, size), totalElements);
+        }
+
+        public RestResponsePage(List<T> content) {
+            super(content);
+        }
     }
 }

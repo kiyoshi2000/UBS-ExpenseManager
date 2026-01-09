@@ -3,6 +3,7 @@ package com.ubs.expensemanager.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ubs.expensemanager.dto.request.ExpenseCategoryCreateRequest;
 import com.ubs.expensemanager.dto.request.ExpenseCategoryUpdateRequest;
+import com.ubs.expensemanager.dto.request.UserFilterRequest;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryAuditResponse;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryResponse;
 import com.ubs.expensemanager.exception.ConflictException;
@@ -16,6 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -133,25 +138,40 @@ class ExpenseCategoryControllerTest {
                         .build()
         );
 
-        when(expenseCategoryService.listAll()).thenReturn(categories);
+        Page<ExpenseCategoryResponse> page = new PageImpl<>(
+                categories,
+                PageRequest.of(0, 20),
+                2
+        );
 
-        mockMvc.perform(get(CATEGORIES_URL))
+        when(expenseCategoryService.listAll(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(
+                    get(CATEGORIES_URL)
+                        .param("page", "0")
+                        .param("size", "20")
+                )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].name").value("Food"))
-                .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[1].name").value("Transport"));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Food"))
+                .andExpect(jsonPath("$.content[1].id").value(2))
+                .andExpect(jsonPath("$.content[1].name").value("Transport"))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1)
+        );
     }
 
     @Test
     void listAll_noCategories_returnsEmptyList() throws Exception {
-        when(expenseCategoryService.listAll()).thenReturn(List.of());
+        when(expenseCategoryService.listAll(any(Pageable.class)))
+                .thenReturn(Page.empty());
 
         mockMvc.perform(get(CATEGORIES_URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content").isEmpty())
+                .andExpect(jsonPath("$.totalElements").value(0));
     }
 
     @Test
