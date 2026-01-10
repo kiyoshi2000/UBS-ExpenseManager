@@ -25,6 +25,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -165,16 +169,22 @@ class ExpenseCategoryServiceTest {
     @Test
     void listAll_returnsAllCategories() {
         List<ExpenseCategory> categories = List.of(foodCategory, transportCategory);
-        when(expenseCategoryRepository.findAll()).thenReturn(categories);
+        Page<ExpenseCategory> page =
+                new PageImpl<>(categories, PageRequest.of(0, 10), categories.size());
 
-        List<ExpenseCategoryResponse> result = expenseCategoryService.listAll();
+        when(expenseCategoryRepository.findAll(any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<ExpenseCategoryResponse> result =
+                expenseCategoryService.listAll(PageRequest.of(0, 10));
 
         assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals("Food", result.get(0).getName());
-        assertEquals("Transport", result.get(1).getName());
+        assertEquals(2, result.getTotalElements());
+        assertEquals(2, result.getContent().size());
+        assertEquals("Food", result.getContent().get(0).getName());
+        assertEquals("Transport", result.getContent().get(1).getName());
 
-        verify(expenseCategoryRepository).findAll();
+        verify(expenseCategoryRepository).findAll(any(Pageable.class));
     }
 
     @Test
