@@ -10,11 +10,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.core.api.dataset.ExpectedDataSet;
+import com.ubs.expensemanager.config.TestSecurityConfig;
 import com.ubs.expensemanager.dto.response.ExpenseCategoryResponse;
+import com.ubs.expensemanager.model.User;
+import com.ubs.expensemanager.model.UserRole;
+import com.ubs.expensemanager.security.JwtUtil;
 import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -28,13 +34,37 @@ import org.springframework.http.ResponseEntity;
 /**
  * Integration test for {@link ExpenseCategoryController}
  */
+@Import(TestSecurityConfig.class)
 public class ExpenseCategoryAPITest extends ControllerAPITest {
 
     private static final String BASE_DATASET = "datasets/expense-categories/";
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    private HttpHeaders headers;
+
     @BeforeEach
     void init() {
         basePath = "http://localhost:%d/api/expense-categories";
+        headers = new HttpHeaders();
+
+        // Authenticate as FINANCE by default (finance users have access to expense category management)
+        authenticateAsFinance();
+    }
+
+    /**
+     * Authenticate as a FINANCE user for testing.
+     */
+    private void authenticateAsFinance() {
+        User finance = User.builder()
+            .id(4L)
+            .email("finance@ubs.com")
+            .name("Finance User")
+            .role(UserRole.FINANCE)
+            .build();
+        String token = jwtUtil.generateToken(finance);
+        headers.set("Authorization", "Bearer " + token);
     }
 
     /**
@@ -49,7 +79,6 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         final String endpointPath = getPath();
         final String data = readFixtureFile("__files/expense-categories/request/create-category-valid.json");
 
-        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // when
@@ -92,7 +121,6 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         final String endpointPath = getPath();
         final String data = readFixtureFile("__files/expense-categories/request/create-category-empty-name.json");
 
-        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // when
@@ -121,7 +149,6 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         final String endpointPath = getPath();
         final String data = readFixtureFile("__files/expense-categories/request/create-category-negative-budget.json");
 
-        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // when
@@ -150,7 +177,6 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         final String endpointPath = getPath();
         final String data = readFixtureFile("__files/expense-categories/request/create-category-valid.json");
 
-        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // when
@@ -184,7 +210,7 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         ResponseEntity<RestResponsePage<ExpenseCategoryResponse>> response = restTemplate.exchange(
                 endpointPath,
                 HttpMethod.GET,
-                null,
+                new HttpEntity<>(headers),
                 new ParameterizedTypeReference<RestResponsePage<ExpenseCategoryResponse>>() {}
         );
 
@@ -219,7 +245,7 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         ResponseEntity<ExpenseCategoryResponse> response = restTemplate.exchange(
                 endpointPath + "/" + categoryId,
                 HttpMethod.GET,
-                null,
+                new HttpEntity<>(headers),
                 ExpenseCategoryResponse.class
         );
 
@@ -254,7 +280,7 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         ResponseEntity<String> response = restTemplate.exchange(
                 endpointPath + "/" + categoryId,
                 HttpMethod.GET,
-                null,
+                new HttpEntity<>(headers),
                 String.class
         );
 
@@ -277,7 +303,6 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         final long categoryId = 1L;
         final String data = readFixtureFile("__files/expense-categories/request/update-category-valid.json");
 
-        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // when
@@ -316,7 +341,6 @@ public class ExpenseCategoryAPITest extends ControllerAPITest {
         final long categoryId = 999L;
         final String data = readFixtureFile("__files/expense-categories/request/update-category-valid.json");
 
-        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         // when

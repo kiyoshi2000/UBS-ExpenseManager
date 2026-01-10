@@ -11,11 +11,17 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.database.rider.core.api.dataset.DataSet;
+import com.ubs.expensemanager.config.TestSecurityConfig;
 import com.ubs.expensemanager.dto.response.UserResponse;
+import com.ubs.expensemanager.model.User;
+import com.ubs.expensemanager.model.UserRole;
+import com.ubs.expensemanager.security.JwtUtil;
 import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -29,16 +35,40 @@ import org.springframework.http.ResponseEntity;
 /**
  * Integration test for {@link UserController}
  */
+@Import(TestSecurityConfig.class)
 public class UserControllerAPITest extends ControllerAPITest {
 
   private static final String BASE_DATASET = "datasets/user/";
 
+  @Autowired
+  private JwtUtil jwtUtil;
+
+  private HttpHeaders headers;
+
   @BeforeEach
   void init() {
     basePath = "http://localhost:%d/api/users";
+    headers = new HttpHeaders();
 
     // Stub password encoder to return the input as-is for testing
     when(passwordEncoder.encode(anyString())).thenAnswer(inv -> "encoded_" + inv.getArgument(0));
+
+    // Authenticate as MANAGER by default (managers have access to user management)
+    authenticateAsManager();
+  }
+
+  /**
+   * Authenticate as a MANAGER user for testing.
+   */
+  private void authenticateAsManager() {
+    User manager = User.builder()
+        .id(2L)
+        .email("manager@ubs.com")
+        .name("Manager User")
+        .role(UserRole.MANAGER)
+        .build();
+    String token = jwtUtil.generateToken(manager);
+    headers.set("Authorization", "Bearer " + token);
   }
 
   /**
@@ -55,8 +85,8 @@ public class UserControllerAPITest extends ControllerAPITest {
     ResponseEntity<RestResponsePage<UserResponse>> response = restTemplate.exchange(
         endpointPath,
         HttpMethod.GET,
-        null,
-        new ParameterizedTypeReference<RestResponsePage<UserResponse>>() {
+        new HttpEntity<>(headers),
+        new ParameterizedTypeReference<>() {
         }
     );
 
@@ -67,6 +97,7 @@ public class UserControllerAPITest extends ControllerAPITest {
         () -> assertNotNull(response.getBody()),
         () -> assertEquals(3, Objects.requireNonNull(response.getBody()).getContent().size()),
         () -> {
+          assertNotNull(response.getBody());
           List<UserResponse> users = response.getBody().getContent();
           assertTrue(users.stream().anyMatch(u -> u.getEmail().equals("finance@ubs.com")));
           assertTrue(users.stream().anyMatch(u -> u.getEmail().equals("manager@ubs.com")));
@@ -90,7 +121,7 @@ public class UserControllerAPITest extends ControllerAPITest {
     ResponseEntity<UserResponse> response = restTemplate.exchange(
         endpointPath + "/" + userId,
         HttpMethod.GET,
-        null,
+        new HttpEntity<>(headers),
         UserResponse.class
     );
 
@@ -127,7 +158,7 @@ public class UserControllerAPITest extends ControllerAPITest {
     ResponseEntity<String> response = restTemplate.exchange(
         endpointPath + "/" + userId,
         HttpMethod.GET,
-        null,
+        new HttpEntity<>(headers),
         String.class
     );
 
@@ -150,7 +181,6 @@ public class UserControllerAPITest extends ControllerAPITest {
     final long userId = 3L;
     final String data = readFixtureFile("__files/user/request/update-valid.json");
 
-    HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
 
     // when
@@ -188,7 +218,6 @@ public class UserControllerAPITest extends ControllerAPITest {
     final long userId = 3L;
     final String data = readFixtureFile("__files/user/request/update-invalid-email.json");
 
-    HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
 
     // when
@@ -218,7 +247,6 @@ public class UserControllerAPITest extends ControllerAPITest {
     final long userId = 3L;
     final String data = readFixtureFile("__files/user/request/update-employee-no-manager.json");
 
-    HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
 
     // when
@@ -252,7 +280,7 @@ public class UserControllerAPITest extends ControllerAPITest {
     ResponseEntity<Void> response = restTemplate.exchange(
         endpointPath + "/" + userId,
         HttpMethod.DELETE,
-        null,
+        new HttpEntity<>(headers),
         Void.class
     );
 
@@ -277,7 +305,7 @@ public class UserControllerAPITest extends ControllerAPITest {
     ResponseEntity<String> response = restTemplate.exchange(
         endpointPath + "/" + userId,
         HttpMethod.DELETE,
-        null,
+        new HttpEntity<>(headers),
         String.class
     );
 
@@ -302,7 +330,7 @@ public class UserControllerAPITest extends ControllerAPITest {
     ResponseEntity<UserResponse> response = restTemplate.exchange(
         endpointPath + "/" + userId + "/reactivate",
         HttpMethod.PATCH,
-        null,
+        new HttpEntity<>(headers),
         UserResponse.class
     );
 
@@ -335,7 +363,7 @@ public class UserControllerAPITest extends ControllerAPITest {
     ResponseEntity<String> response = restTemplate.exchange(
         endpointPath + "/" + userId + "/reactivate",
         HttpMethod.PATCH,
-        null,
+        new HttpEntity<>(headers),
         String.class
     );
 

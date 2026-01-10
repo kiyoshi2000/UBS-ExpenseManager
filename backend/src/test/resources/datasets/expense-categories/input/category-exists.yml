@@ -1,7 +1,25 @@
+PUBLIC.departments:
+  - id: 1
+    name: "IT"
+    daily_budget: 400.0
+    monthly_budget: 12000.0
+    currency: "USD"
+
 PUBLIC.CURRENCIES:
   - ID: 1
     NAME: USD
     EXCHANGE_RATE: 1.000000
+
+PUBLIC.users:
+  - id: 4
+    name: "Alice Finance"
+    email: "finance@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "FINANCE"
+    manager_id: null
+    department_id: 1
+    active: true
+
 PUBLIC.EXPENSE_CATEGORIES:
   - ID: 1
     NAME: Food

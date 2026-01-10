@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.database.rider.core.api.configuration.DBUnit;
 import com.github.database.rider.junit5.api.DBRider;
 import com.github.tomakehurst.wiremock.core.Options;
+import com.ubs.expensemanager.config.TestJpaAuditingConfig;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -24,12 +25,14 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Import;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Base integration test class with support to in-memory database connection
  */
 @ActiveProfiles("test")
+@Import(TestJpaAuditingConfig.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureWireMock(port = Options.DYNAMIC_PORT)
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)

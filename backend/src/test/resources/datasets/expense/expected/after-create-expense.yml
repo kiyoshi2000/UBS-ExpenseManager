@@ -1,0 +1,123 @@
+PUBLIC.departments:
+  - id: 101
+    name: "IT"
+    daily_budget: 400.0
+    monthly_budget: 12000.0
+    currency: "USD"
+  - id: 102
+    name: "Finance"
+    daily_budget: 500.0
+    monthly_budget: 15000.0
+    currency: "USD"
+
+PUBLIC.currencies:
+  - id: 101
+    name: "USD"
+    exchange_rate: 1.000000
+  - id: 102
+    name: "BRL"
+    exchange_rate: 5.000000
+
+PUBLIC.expense_categories:
+  - id: 101
+    name: "Food"
+    daily_budget: 100.0
+    monthly_budget: 3000.0
+    currency_id: 101
+  - id: 102
+    name: "Transport"
+    daily_budget: 50.0
+    monthly_budget: 1500.0
+    currency_id: 101
+
+PUBLIC.users:
+  - id: 101
+    name: "Jane Manager"
+    email: "manager@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "MANAGER"
+    manager_id: null
+    department_id: 101
+    active: true
+  - id: 102
+    name: "Bob Manager Other Dept"
+    email: "manager2@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "MANAGER"
+    manager_id: null
+    department_id: 102
+    active: true
+  - id: 103
+    name: "Alice Finance"
+    email: "finance@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "FINANCE"
+    manager_id: null
+    department_id: 102
+    active: true
+  - id: 104
+    name: "John Employee"
+    email: "employee@ubs.com"
+    password: "$2a$10$fakehashedpassword"
+    role: "EMPLOYEE"
+    manager_id: 101
+    department_id: 101
+    active: true
+
+PUBLIC.expenses:
+  - id: 1
+    amount: 25.50
+    description: "Coffee meeting with client"
+    expense_date: "2026-01-09"
+    user_id: 104
+    expense_category_id: 101
+    currency_id: 101
+    receipt_url: "https://example.com/receipts/new-receipt.pdf"
+    status: "PENDING"
+#    created_at: "regex:.+"
+#    updated_at: "regex:.+"
+  - id: 101
+    amount: 50.00
+    description: "Team lunch"
+    expense_date: "2026-01-08"
+    user_id: 104
+    expense_category_id: 101
+    currency_id: 101
+    receipt_url: "https://example.com/receipts/1.pdf"
+    status: "PENDING"
+  - id: 102
+    amount: 75.00
+    description: "Client dinner"
+    expense_date: "2026-01-07"
+    user_id: 104
+    expense_category_id: 101
+    currency_id: 101
+    receipt_url: "https://example.com/receipts/2.pdf"
+    status: "APPROVED_BY_MANAGER"
+  - id: 103
+    amount: 30.00
+    description: "Taxi to office"
+    expense_date: "2026-01-06"
+    user_id: 104
+    expense_category_id: 102
+    currency_id: 101
+    receipt_url: null
+    status: "PENDING"
+  - id: 104
+    amount: 100.00
+    description: "Conference meals"
+    expense_date: "2026-01-05"
+    user_id: 104
+    expense_category_id: 101
+    currency_id: 101
+    receipt_url: "https://example.com/receipts/4.pdf"
+    status: "APPROVED_BY_FINANCE"
+  - id: 105
+    amount: 25.00
+    description: "Office supplies"
+    expense_date: "2026-01-04"
+    user_id: 104
+    expense_category_id: 102
+    currency_id: 101
+    receipt_url: null
+    status: "REQUIRES_REVISION"
