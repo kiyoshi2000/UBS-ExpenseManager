@@ -38,6 +38,13 @@ public class DepartmentService {
             throw new ConflictException("Department with this name already exists");
         }
 
+        if (request.getDailyBudget() != null &&
+            request.getDailyBudget().compareTo(request.getMonthlyBudget()) > 0) {
+            throw new IllegalArgumentException(
+                "Daily budget cannot be greater than monthly budget"
+            );
+        }
+
         Department department = Department.builder()
                 .name(request.getName())
                 .monthlyBudget(request.getMonthlyBudget())
@@ -79,10 +86,16 @@ public class DepartmentService {
                 && departmentRepository.existsByNameIgnoreCase(request.getName())) {
             throw new ConflictException("Department with this name already exists");
         }
+        if (request.getDailyBudget() != null &&
+            request.getDailyBudget().compareTo(request.getMonthlyBudget()) > 0) {
+            throw new IllegalArgumentException(
+                "Daily budget cannot be greater than monthly budget"
+            );
+        }
 
         department.setName(request.getName());
         department.setMonthlyBudget(request.getMonthlyBudget());
-        department.setDailyBudget(request.getDailyBudget()); // ✅ FIX
+        department.setDailyBudget(request.getDailyBudget()); 
         department.setCurrency(request.getCurrency());
 
         Department updatedDepartment = departmentRepository.save(department);

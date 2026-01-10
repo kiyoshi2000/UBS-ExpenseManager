@@ -30,7 +30,10 @@ export const CreateDepartmentDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent 
+        className="sm:max-w-[480px]"
+        onInteractOutside={(e) => e.preventDefault()}
+        >
         <DialogHeader>
           <DialogTitle>Create Department</DialogTitle>
           <DialogDescription>
