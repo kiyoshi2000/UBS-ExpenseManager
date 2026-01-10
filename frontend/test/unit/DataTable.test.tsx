@@ -1,7 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { DataTable, ColumnDef, RowAction } from '../../src/components/DataTable/DataTable';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {
+  DataTable,
+  ColumnDef,
+  RowAction,
+} from "../../src/components/DataTable/DataTable";
 
 interface TestData {
   id: number;
@@ -11,134 +15,157 @@ interface TestData {
 }
 
 const mockData: TestData[] = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', status: 'Active' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', status: 'Inactive' },
-  { id: 3, name: 'Bob Johnson', email: 'bob@example.com', status: 'Active' },
+  { id: 1, name: "John Doe", email: "john@example.com", status: "Active" },
+  { id: 2, name: "Jane Smith", email: "jane@example.com", status: "Inactive" },
+  { id: 3, name: "Bob Johnson", email: "bob@example.com", status: "Active" },
 ];
 
 const mockColumns: ColumnDef<TestData>[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'email', label: 'Email' },
-  { key: 'status', label: 'Status' },
+  { key: "name", label: "Name" },
+  { key: "email", label: "Email" },
+  { key: "status", label: "Status" },
 ];
 
-describe('DataTable', () => {
-  it('renders columns correctly', () => {
+describe("DataTable", () => {
+  it("renders columns correctly", () => {
     render(<DataTable columns={mockColumns} data={mockData} />);
 
-    expect(screen.getByText('Name')).toBeInTheDocument();
-    expect(screen.getByText('Email')).toBeInTheDocument();
-    expect(screen.getByText('Status')).toBeInTheDocument();
+    expect(screen.getByText("Name")).toBeInTheDocument();
+    expect(screen.getByText("Email")).toBeInTheDocument();
+    expect(screen.getByText("Status")).toBeInTheDocument();
   });
 
-  it('renders data correctly', () => {
+  it("renders data correctly", () => {
     render(<DataTable columns={mockColumns} data={mockData} />);
 
-    expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('john@example.com')).toBeInTheDocument();
-    expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
-    expect(screen.getByText('Bob Johnson')).toBeInTheDocument();
-    expect(screen.getByText('bob@example.com')).toBeInTheDocument();
+    expect(screen.getByText("John Doe")).toBeInTheDocument();
+    expect(screen.getByText("john@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+    expect(screen.getByText("jane@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Bob Johnson")).toBeInTheDocument();
+    expect(screen.getByText("bob@example.com")).toBeInTheDocument();
   });
 
-  it('displays message when there is no data', () => {
+  it("displays message when there is no data", () => {
     render(<DataTable columns={mockColumns} data={[]} />);
 
-    expect(screen.getByText('Nenhum dado disponível')).toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhum dado disponível")
+    ).toBeInTheDocument();
   });
 
-  it('displays custom message when there is no data', () => {
+  it("displays custom message when there is no data", () => {
     render(
-      <DataTable 
-        columns={mockColumns} 
-        data={[]} 
-        emptyMessage="No users found" 
+      <DataTable
+        columns={mockColumns}
+        data={[]}
+        emptyMessage="No users found"
       />
     );
 
-    expect(screen.getByText('No users found')).toBeInTheDocument();
+    expect(screen.getByText("No users found")).toBeInTheDocument();
   });
 
-  it('renders actions column when actions are provided', () => {
+  it("renders actions column when actions are provided", () => {
     const mockActions: RowAction<TestData>[] = [
       {
-        label: 'Edit',
+        label: "Edit",
         icon: <span>Edit Icon</span>,
         onClick: vi.fn(),
-        color: 'blue',
+        color: "blue",
       },
     ];
 
-    render(<DataTable columns={mockColumns} data={mockData} actions={mockActions} />);
+    render(
+      <DataTable
+        columns={mockColumns}
+        data={mockData}
+        actions={mockActions}
+      />
+    );
 
-    expect(screen.getByText('Ações')).toBeInTheDocument();
+    expect(screen.getByText("Ações")).toBeInTheDocument();
   });
 
-  it('does not render actions column when actions are not provided', () => {
+  it("does not render actions column when actions are not provided", () => {
     render(<DataTable columns={mockColumns} data={mockData} />);
 
-    expect(screen.queryByText('Ações')).not.toBeInTheDocument();
+    expect(screen.queryByText("Ações")).not.toBeInTheDocument();
   });
 
-  it('calls onClick when action is clicked', async () => {
+  it("calls onClick when action is clicked", async () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();
+
     const mockActions: RowAction<TestData>[] = [
       {
-        label: 'Edit',
+        label: "Edit",
         icon: <span>✏️</span>,
         onClick: handleClick,
-        color: 'blue',
+        color: "blue",
       },
     ];
 
-    render(<DataTable columns={mockColumns} data={mockData} actions={mockActions} />);
+    render(
+      <DataTable
+        columns={mockColumns}
+        data={mockData}
+        actions={mockActions}
+      />
+    );
 
-    const buttons = screen.getAllByTitle('Edit');
+    const buttons = screen.getAllByTitle("Edit");
     await user.click(buttons[0]);
 
     expect(handleClick).toHaveBeenCalledTimes(1);
     expect(handleClick).toHaveBeenCalledWith(mockData[0]);
   });
 
-  it('renders multiple actions per row', () => {
+  it("renders multiple actions per row", () => {
     const mockActions: RowAction<TestData>[] = [
       {
-        label: 'Edit',
+        label: "Edit",
         icon: <span>✏️</span>,
         onClick: vi.fn(),
-        color: 'blue',
+        color: "blue",
       },
       {
-        label: 'Delete',
+        label: "Delete",
         icon: <span>🗑️</span>,
         onClick: vi.fn(),
-        color: 'red',
+        color: "red",
       },
     ];
 
-    render(<DataTable columns={mockColumns} data={mockData} actions={mockActions} />);
+    render(
+      <DataTable
+        columns={mockColumns}
+        data={mockData}
+        actions={mockActions}
+      />
+    );
 
-    expect(screen.getAllByTitle('Edit')).toHaveLength(3);
-    expect(screen.getAllByTitle('Delete')).toHaveLength(3);
+    expect(screen.getAllByTitle("Edit")).toHaveLength(3);
+    expect(screen.getAllByTitle("Delete")).toHaveLength(3);
   });
 
-  it('applies custom render when provided', () => {
+  it("applies custom render when provided", () => {
     const columnsWithRender: ColumnDef<TestData>[] = [
       {
-        key: 'name',
-        label: 'Name',
-        render: (value) => <strong>{String(value)}</strong>,
+        key: "name",
+        label: "Name",
+        render: (row) => <strong>{row.name}</strong>,
       },
-      { key: 'email', label: 'Email' },
+      { key: "email", label: "Email" },
     ];
 
     render(<DataTable columns={columnsWithRender} data={mockData} />);
 
-    const strongElements = screen.getAllByText('John Doe');
-    expect(strongElements[0].tagName).toBe('STRONG');
+    const strongElements = screen.getAllByText("John Doe");
+    expect(strongElements[0].tagName).toBe("STRONG");
+    });
   });
+
 
   it('filters actions based on shouldShow', () => {
     const mockActions: RowAction<TestData>[] = [
