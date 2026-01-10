@@ -6,7 +6,7 @@ import {
   departmentSchema,
   DepartmentFormData,
 } from "@/utils/validation";
-import { Department } from "../types/department";
+import type { Department } from "./types/department";
 import { Button } from "@/components/ui/button";
 
 interface Props {

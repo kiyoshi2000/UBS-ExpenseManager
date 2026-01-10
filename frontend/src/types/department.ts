@@ -2,11 +2,13 @@ export interface Department {
   id: number;
   name: string;
   monthlyBudget: number;
-  currency: string;
+  dailyBudget: number | null; 
+  currency: "USD" | "BRL";
 }
 
 export interface DepartmentCreateRequest {
   name: string;
   monthlyBudget: number;
-  currency: string;
+  dailyBudget?: number | null; 
+  currency: "USD" | "BRL";
 }
