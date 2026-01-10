@@ -140,13 +140,19 @@ export const CategoriesPage = () => {
   };
 
   const formatCurrency = (value: number, currency: "USD" | "BRL") => {
-    return new Intl.NumberFormat(
+    const formatted = new Intl.NumberFormat(
       currency === "BRL" ? "pt-BR" : "en-US",
       {
         style: "currency",
         currency,
       }
     ).format(value);
+    
+    // Ensure consistent spacing for USD (add space after $ if not present)
+    if (currency === "USD" && formatted.startsWith("$")) {
+      return formatted.replace("$", "$ ");
+    }
+    return formatted;
   };
 
   const columns: ColumnDef<Category>[] = [
@@ -159,26 +165,34 @@ export const CategoriesPage = () => {
       },
     },
     {
+      key: "currencyName",
+      label: "Currency",
+    },
+    {
       key: "dailyBudget",
       label: "Daily Budget",
-      render: (value, row) =>
-        formatCurrency(
-          value as number,
-          row.currencyName as "USD" | "BRL"
-        ),
+      headerAlign: "right",
+      render: (value, row) => (
+        <span className="text-right block">
+          {formatCurrency(
+            value as number,
+            row.currencyName as "USD" | "BRL"
+          )}
+        </span>
+      ),
     },
     {
       key: "monthlyBudget",
       label: "Monthly Budget",
-      render: (value, row) =>
-        formatCurrency(
-          value as number,
-          row.currencyName as "USD" | "BRL"
-        ),
-    },
-    {
-      key: "currencyName",
-      label: "Currency",
+      headerAlign: "right",
+      render: (value, row) => (
+        <span className="text-right block">
+          {formatCurrency(
+            value as number,
+            row.currencyName as "USD" | "BRL"
+          )}
+        </span>
+      ),
     },
   ];
 
