@@ -59,7 +59,7 @@ export const CreateCategoryDialog = ({
       if (!value.trim()) {
         newErrors.name = "Name is required";
       } else {
-        const { name, ...rest } = newErrors;
+        const { name: _name, ...rest } = newErrors;
         setErrors(rest);
         return;
       }
@@ -69,7 +69,7 @@ export const CreateCategoryDialog = ({
       if (!value) {
         newErrors.currencyName = "Currency is required";
       } else {
-        const { currencyName, ...rest } = newErrors;
+        const { currencyName: _currencyName, ...rest } = newErrors;
         setErrors(rest);
         return;
       }
