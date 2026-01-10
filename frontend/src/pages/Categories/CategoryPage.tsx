@@ -101,6 +101,7 @@ export const CategoriesPage = () => {
       });
 
       setOpenCreateDialog(false);
+      setCreateErrorMessage("");
       await fetchCategories(currentPage, 10, searchQuery);
       setOpenCreateSuccessDialog(true);
     } catch (err) {
@@ -138,18 +139,48 @@ export const CategoriesPage = () => {
     setCurrentPage(1);
   };
 
+  const formatCurrency = (value: number, currency: "USD" | "BRL") => {
+    return new Intl.NumberFormat(
+      currency === "BRL" ? "pt-BR" : "en-US",
+      {
+        style: "currency",
+        currency,
+      }
+    ).format(value);
+  };
+
   const columns: ColumnDef<Category>[] = [
-    { key: "name", label: "Name" },
+    {
+      key: "name",
+      label: "Name",
+      render: (value: Category[keyof Category]) => {
+        const displayValue = typeof value === "string" ? value : "";
+        return <span className="font-medium">{displayValue}</span>;
+      },
+    },
     {
       key: "dailyBudget",
       label: "Daily Budget",
+      render: (value, row) =>
+        formatCurrency(
+          value as number,
+          row.currencyName as "USD" | "BRL"
+        ),
     },
     {
       key: "monthlyBudget",
       label: "Monthly Budget",
+      render: (value, row) =>
+        formatCurrency(
+          value as number,
+          row.currencyName as "USD" | "BRL"
+        ),
+    },
+    {
+      key: "currencyName",
+      label: "Currency",
     },
   ];
-
 
   const actions: RowAction<Category>[] = [
     {
@@ -182,7 +213,7 @@ export const CategoriesPage = () => {
           <ActionButton
             label="Add Category"
             icon={<Plus className="h-4 w-4" />}
-            onClick={() => setOpenCreateDialog(true)}
+            onClick={() => { setCreateErrorMessage(""); setOpenCreateDialog(true) }}
           />
         </div>
       </div>
