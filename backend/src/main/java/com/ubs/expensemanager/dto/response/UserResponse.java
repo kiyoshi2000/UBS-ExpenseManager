@@ -1,7 +1,6 @@
 package com.ubs.expensemanager.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.ubs.expensemanager.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,27 +42,4 @@ public class UserResponse {
         private String email;
     }
 
-    /**
-     * Converts a User entity into a UserResponse DTO.
-     * @param user the User entity
-     * @return a UserResponse with role prefixed by "ROLE_"
-     */
-    public static UserResponse fromEntity(User user) {
-        return UserResponse.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role("ROLE_" + user.getRole().name())
-                .department(user.getDepartment() != null ? DepartmentInfo.builder()
-                        .id(user.getDepartment().getId())
-                        .name(user.getDepartment().getName())
-                        .build() : null)
-                .manager(user.getManager() != null ? ManagerInfo.builder()
-                        .id(user.getManager().getId())
-                        .name(user.getManager().getName())
-                        .email(user.getManager().getEmail())
-                        .build() : null)
-                .active(user.isActive())
-                .build();
-    }
 }

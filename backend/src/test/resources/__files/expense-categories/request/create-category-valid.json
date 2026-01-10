@@ -1,0 +1,6 @@
+{
+  "name": "Food",
+  "dailyBudget": 100.00,
+  "monthlyBudget": 3000.00,
+  "currencyName": "USD"
+}

@@ -13,6 +13,7 @@ export interface ColumnDef<TData> {
   label: string;
   render?: (row: TData) => ReactNode;
   width?: string;
+  headerAlign?: "left" | "center" | "right";
 }
 
 export interface RowAction<TData> {

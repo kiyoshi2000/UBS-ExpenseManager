@@ -1,0 +1,8 @@
+{
+  "amount": 60.00,
+  "description": "Updated lunch expense",
+  "expenseDate": "2026-01-08",
+  "expenseCategoryId": 101,
+  "currencyName": "USD",
+  "receiptUrl": "https://example.com/receipts/updated-receipt.pdf"
+}

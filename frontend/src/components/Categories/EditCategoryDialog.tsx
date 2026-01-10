@@ -1,0 +1,245 @@
+import { useState, useEffect } from "react";
+import { AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { MoneyInput } from "@/components/ui/money-input";
+
+export interface EditCategoryFormData {
+  name: string;
+  dailyBudget: number;
+  monthlyBudget: number;
+  currencyName: string;
+}
+
+interface EditCategoryDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  category: EditCategoryFormData | null;
+  onSubmit: (data: EditCategoryFormData) => void;
+  error?: string;
+}
+
+const currencyOptions = ["USD", "BRL"];
+
+export const EditCategoryDialog = ({
+  open,
+  onOpenChange,
+  category,
+  onSubmit,
+  error,
+}: EditCategoryDialogProps) => {
+  const [formData, setFormData] = useState<EditCategoryFormData>({
+    name: "",
+    dailyBudget: 0,
+    monthlyBudget: 0,
+    currencyName: "",
+  });
+
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof EditCategoryFormData, string>>
+  >({});
+
+  useEffect(() => {
+    if (category && open) {
+      setFormData(category);
+      setErrors({});
+    }
+  }, [category, open]);
+
+  const handleInputChange = (
+    field: keyof EditCategoryFormData,
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    const newErrors = { ...errors };
+
+    if (field === "name") {
+      if (!value.trim()) newErrors.name = "Name is required";
+      else delete newErrors.name;
+    }
+
+    if (field === "currencyName") {
+      if (!value) newErrors.currencyName = "Currency is required";
+      else delete newErrors.currencyName;
+    }
+
+    setErrors(newErrors);
+  };
+
+  const handleMoneyChange = (
+    field: "dailyBudget" | "monthlyBudget",
+    value: number | null
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value ?? 0,
+    }));
+
+    const newErrors = { ...errors };
+
+    if (value === null || value < 0) {
+      newErrors[field] = `${field === "dailyBudget" ? "Daily" : "Monthly"} budget must be ≥ 0`;
+    } else {
+      delete newErrors[field];
+    }
+
+    setErrors(newErrors);
+  };
+
+  const isFormValid = () =>
+    Object.keys(errors).length === 0 &&
+    formData.name.trim() !== "" &&
+    formData.currencyName !== "" &&
+    formData.dailyBudget !== null &&
+    formData.monthlyBudget !== null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isFormValid()) onSubmit(formData);
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) setErrors({});
+    onOpenChange(newOpen);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[500px]"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Edit Category</DialogTitle>
+          <DialogDescription>
+            Update the category information below
+          </DialogDescription>
+        </DialogHeader>
+
+        {error && (
+          <div className="flex items-start gap-3 rounded-lg bg-red-50 p-4 dark:bg-red-950/50">
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-medium text-red-800">
+                Error updating category
+              </h3>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name">
+              Name <span className="text-red-600">*</span>
+            </Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) =>
+                handleInputChange("name", e.target.value)
+              }
+            />
+            {errors.name && (
+              <p className="text-sm text-red-600">{errors.name}</p>
+            )}
+          </div>
+
+          {/* Currency */}
+          <div className="space-y-2">
+            <Label htmlFor="currency">
+              Currency <span className="text-red-600">*</span>
+            </Label>
+            <select
+              id="currency"
+              value={formData.currencyName}
+              onChange={(e) =>
+                handleInputChange("currencyName", e.target.value)
+              }
+              className="flex h-9 w-full rounded-md border px-3 py-1 text-sm"
+            >
+              <option value="">Select</option>
+              {currencyOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            {errors.currencyName && (
+              <p className="text-sm text-red-600">
+                {errors.currencyName}
+              </p>
+            )}
+          </div>
+
+          {/* Daily Budget */}
+          <div className="space-y-2">
+            <Label htmlFor="dailyBudget">
+              Daily Budget <span className="text-red-600">*</span>
+            </Label>
+            <MoneyInput
+              id="dailyBudget"
+              placeholder="0.00"
+              value={formData.dailyBudget}
+              currency={formData.currencyName}
+              onChange={(value) => handleMoneyChange("dailyBudget", value)}
+              disabled={!formData.currencyName}
+            />
+            {errors.dailyBudget && (
+              <p className="text-sm text-red-600">
+                {errors.dailyBudget}
+              </p>
+            )}
+          </div>
+
+          {/* Monthly Budget */}
+          <div className="space-y-2">
+            <Label htmlFor="monthlyBudget">
+              Monthly Budget <span className="text-red-600">*</span>
+            </Label>
+            <MoneyInput
+              id="monthlyBudget"
+              placeholder="0.00"
+              value={formData.monthlyBudget}
+              currency={formData.currencyName}
+              onChange={(value) => handleMoneyChange("monthlyBudget", value)}
+              disabled={!formData.currencyName}
+            />
+            {errors.monthlyBudget && (
+              <p className="text-sm text-red-600">
+                {errors.monthlyBudget}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!isFormValid()}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};

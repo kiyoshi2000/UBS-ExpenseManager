@@ -1,11 +1,17 @@
 package com.ubs.expensemanager.security;
 
 import com.ubs.expensemanager.service.UserDetailsServiceImpl;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,15 +20,13 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 /**
  * Filter that checks incoming HTTP requests for a JWT token.
  *
  * <p> Extracts the token from cookies (preferred) or Authorization header,
  * validates it, and sets the authentication in the SecurityContext if valid. </p>
  */
+@Slf4j
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -37,6 +41,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+      try{
         String token = extractTokenFromCookie(request);
 
         // Fallback to Authorization header if no cookie
@@ -58,7 +63,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-        filterChain.doFilter(request, response);
+      } catch (ExpiredJwtException e) {
+        log.warn("JWT token is expired: {}", e.getMessage());
+      } catch (MalformedJwtException e) {
+        log.warn("JWT token is malformed: {}", e.getMessage());
+      } catch (SignatureException e) {
+        log.warn("JWT signature validation failed: {}", e.getMessage());
+      } catch (Exception e) {
+        log.error("Error processing JWT token: {}", e.getMessage(), e);
+      }
+
+      filterChain.doFilter(request, response);
     }
 
     private String extractTokenFromCookie(HttpServletRequest request) {

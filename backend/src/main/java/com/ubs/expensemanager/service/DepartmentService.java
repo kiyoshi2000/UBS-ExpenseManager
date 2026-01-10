@@ -5,13 +5,13 @@ import com.ubs.expensemanager.dto.request.DepartmentUpdateRequest;
 import com.ubs.expensemanager.dto.response.DepartmentResponse;
 import com.ubs.expensemanager.exception.ConflictException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
+import com.ubs.expensemanager.mapper.DepartmentMapper;
 import com.ubs.expensemanager.model.Department;
 import com.ubs.expensemanager.repository.DepartmentRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 /**
  * Service responsible for handling business logic related to Departments.
@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
+    private final DepartmentMapper departmentMapper;
 
     /**
      * Creates a new department.
@@ -54,7 +55,7 @@ public class DepartmentService {
 
         Department savedDepartment = departmentRepository.save(department);
 
-        return toResponse(savedDepartment);
+        return departmentMapper.toResponse(savedDepartment);
     }
 
     /**
@@ -65,7 +66,7 @@ public class DepartmentService {
     public List<DepartmentResponse> listAll() {
         return departmentRepository.findAll()
                 .stream()
-                .map(this::toResponse)
+                .map(departmentMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -100,7 +101,7 @@ public class DepartmentService {
 
         Department updatedDepartment = departmentRepository.save(department);
 
-        return toResponse(updatedDepartment);
+        return departmentMapper.toResponse(updatedDepartment);
     }
 
     /**
@@ -116,16 +117,4 @@ public class DepartmentService {
         departmentRepository.deleteById(id);
     }
 
-    /**
-     * Maps a Department entity to a DepartmentResponse DTO.
-     */
-    private DepartmentResponse toResponse(Department department) {
-        return DepartmentResponse.builder()
-                .id(department.getId())
-                .name(department.getName())
-                .monthlyBudget(department.getMonthlyBudget())
-                .dailyBudget(department.getDailyBudget())
-                .currency(department.getCurrency())
-                .build();
-    }
 }

@@ -328,7 +328,7 @@ export const UsersPage = () => {
             onSearch={handleSearch}
           />
           <ActionButton
-            label="Add New Employee"
+            label="Add User"
             icon={<Plus className="h-4 w-4" />}
             onClick={handleAddEmployee}
           />
@@ -395,7 +395,7 @@ export const UsersPage = () => {
         open={openDeleteDialog}
         onOpenChange={setOpenDeleteDialog}
         title="Deactivate User"
-        description={`Are you sure you want to deactivate ${userToDelete?.name}? This action cannot be undone.`}
+        description={`Are you sure you want to deactivate ${userToDelete?.name}? `}
         confirmText="Deactivate"
         variant="danger"
         icon={<AlertCircle className="h-6 w-6 text-red-600" />}
