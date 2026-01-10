@@ -15,9 +15,8 @@ import {
 export interface EditCategoryFormData {
   name: string;
   dailyBudget: number;
-  dailyBudgetCurrency: string;
   monthlyBudget: number;
-  monthlyBudgetCurrency: string;
+  currencyName: string;
 }
 
 interface EditCategoryDialogProps {
@@ -30,6 +29,27 @@ interface EditCategoryDialogProps {
 
 const currencyOptions = ["USD", "BRL"];
 
+const parseMoneyToCents = (value: string): number | null => {
+  if (!value) return null;
+  const cleaned = value.replace(/[^\d.]/g, "");
+  const numberValue = Number(cleaned);
+  if (isNaN(numberValue)) return null;
+  return Math.round(numberValue * 100);
+};
+
+const formatCentsToCurrency = (
+  cents: number | null,
+  currency: string
+): string => {
+  if (cents === null || !currency) return "";
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+  }).format(cents / 100);
+};
+
 export const EditCategoryDialog = ({
   open,
   onOpenChange,
@@ -40,15 +60,14 @@ export const EditCategoryDialog = ({
   const [formData, setFormData] = useState<EditCategoryFormData>({
     name: "",
     dailyBudget: 0,
-    dailyBudgetCurrency: "USD",
     monthlyBudget: 0,
-    monthlyBudgetCurrency: "USD",
+    currencyName: "",
   });
 
-  const [errors, setErrors] =
-    useState<Partial<Record<keyof EditCategoryFormData, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof EditCategoryFormData, string>>
+  >({});
 
-  /** Sync when category changes */
   useEffect(() => {
     if (category && open) {
       setFormData(category);
@@ -58,51 +77,56 @@ export const EditCategoryDialog = ({
 
   const handleInputChange = (
     field: keyof EditCategoryFormData,
-    value: string | number
+    value: string
   ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    let parsedValue: any = value;
+
+    if (field === "dailyBudget" || field === "monthlyBudget") {
+      parsedValue = parseMoneyToCents(value);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [field]: parsedValue,
+    }));
 
     const newErrors = { ...errors };
 
     if (field === "name") {
-      if (!String(value).trim()) newErrors.name = "Name is required";
+      if (!value.trim()) newErrors.name = "Name is required";
       else delete newErrors.name;
     }
 
+    if (field === "currencyName") {
+      if (!value) newErrors.currencyName = "Currency is required";
+      else delete newErrors.currencyName;
+    }
+
     if (field === "dailyBudget") {
-      if (Number(value) < 0) newErrors.dailyBudget = "Daily budget must be ≥ 0";
+      if (parsedValue === null || parsedValue < 0)
+        newErrors.dailyBudget = "Daily budget must be ≥ 0";
       else delete newErrors.dailyBudget;
     }
 
-    if (field === "dailyBudgetCurrency") {
-      if (!value) newErrors.dailyBudgetCurrency = "Currency is required";
-      else delete newErrors.dailyBudgetCurrency;
-    }
-
     if (field === "monthlyBudget") {
-      if (Number(value) < 0) newErrors.monthlyBudget = "Monthly budget must be ≥ 0";
+      if (parsedValue === null || parsedValue < 0)
+        newErrors.monthlyBudget = "Monthly budget must be ≥ 0";
       else delete newErrors.monthlyBudget;
-    }
-
-    if (field === "monthlyBudgetCurrency") {
-      if (!value) newErrors.monthlyBudgetCurrency = "Currency is required";
-      else delete newErrors.monthlyBudgetCurrency;
     }
 
     setErrors(newErrors);
   };
 
-  const isFormValid =
+  const isFormValid = () =>
     Object.keys(errors).length === 0 &&
     formData.name.trim() !== "" &&
-    formData.dailyBudget >= 0 &&
-    formData.dailyBudgetCurrency &&
-    formData.monthlyBudget >= 0 &&
-    formData.monthlyBudgetCurrency;
+    formData.currencyName !== "" &&
+    formData.dailyBudget !== null &&
+    formData.monthlyBudget !== null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isFormValid) onSubmit(formData);
+    if (isFormValid()) onSubmit(formData);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -122,14 +146,12 @@ export const EditCategoryDialog = ({
 
         {error && (
           <div className="flex items-start gap-3 rounded-lg bg-red-50 p-4 dark:bg-red-950/50">
-            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
             <div>
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
+              <h3 className="text-sm font-medium text-red-800">
                 Error updating category
               </h3>
-              <p className="mt-1 text-sm text-red-700 dark:text-red-400">
-                {error}
-              </p>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
             </div>
           </div>
         )}
@@ -137,124 +159,101 @@ export const EditCategoryDialog = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">
+            <Label>
               Name <span className="text-red-600">*</span>
             </Label>
             <Input
-              id="name"
               value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              className={errors.name ? "border-red-500" : ""}
+              onChange={(e) =>
+                handleInputChange("name", e.target.value)
+              }
             />
             {errors.name && (
               <p className="text-sm text-red-600">{errors.name}</p>
             )}
           </div>
 
+          {/* Currency */}
+          <div className="space-y-2">
+            <Label>
+              Currency <span className="text-red-600">*</span>
+            </Label>
+            <select
+              value={formData.currencyName}
+              onChange={(e) =>
+                handleInputChange("currencyName", e.target.value)
+              }
+              className="flex h-9 w-full rounded-md border px-3 py-1 text-sm"
+            >
+              <option value="">Select</option>
+              {currencyOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            {errors.currencyName && (
+              <p className="text-sm text-red-600">
+                {errors.currencyName}
+              </p>
+            )}
+          </div>
+
           {/* Daily Budget */}
           <div className="space-y-2">
-            <div className="flex gap-2 items-end">
-              <div className="flex flex-col">
-                <Label>
-                  Currency <span className="text-red-600">*</span>
-                </Label>
-                <select
-                  value={formData.dailyBudgetCurrency}
-                  onChange={(e) =>
-                    handleInputChange("dailyBudgetCurrency", e.target.value)
-                  }
-                  className={`h-9 w-24 rounded-md border px-2 text-sm ${
-                    errors.dailyBudgetCurrency
-                      ? "border-red-500"
-                      : "border-input"
-                  }`}
-                >
-                  <option value="">Select</option>
-                  {currencyOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex-1 flex flex-col">
-                <Label>
-                  Daily Budget <span className="text-red-600">*</span>
-                </Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={formData.dailyBudget}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "dailyBudget",
-                      Number(e.target.value)
-                    )
-                  }
-                  className={errors.dailyBudget ? "border-red-500" : ""}
-                />
-              </div>
-            </div>
+            <Label>
+              Daily Budget <span className="text-red-600">*</span>
+            </Label>
+            <Input
+              placeholder="0.00"
+              value={formatCentsToCurrency(
+                formData.dailyBudget,
+                formData.currencyName
+              )}
+              onChange={(e) =>
+                handleInputChange("dailyBudget", e.target.value)
+              }
+              disabled={!formData.currencyName}
+            />
+            {errors.dailyBudget && (
+              <p className="text-sm text-red-600">
+                {errors.dailyBudget}
+              </p>
+            )}
           </div>
 
           {/* Monthly Budget */}
           <div className="space-y-2">
-            <div className="flex gap-2 items-end">
-              <div className="flex flex-col">
-                <Label>
-                  Currency <span className="text-red-600">*</span>
-                </Label>
-                <select
-                  value={formData.monthlyBudgetCurrency}
-                  onChange={(e) =>
-                    handleInputChange("monthlyBudgetCurrency", e.target.value)
-                  }
-                  className={`h-9 w-24 rounded-md border px-2 text-sm ${
-                    errors.monthlyBudgetCurrency
-                      ? "border-red-500"
-                      : "border-input"
-                  }`}
-                >
-                  <option value="">Select</option>
-                  {currencyOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex-1 flex flex-col">
-                <Label>
-                  Monthly Budget <span className="text-red-600">*</span>
-                </Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={formData.monthlyBudget}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "monthlyBudget",
-                      Number(e.target.value)
-                    )
-                  }
-                  className={errors.monthlyBudget ? "border-red-500" : ""}
-                />
-              </div>
-            </div>
+            <Label>
+              Monthly Budget <span className="text-red-600">*</span>
+            </Label>
+            <Input
+              placeholder="0.00"
+              value={formatCentsToCurrency(
+                formData.monthlyBudget,
+                formData.currencyName
+              )}
+              onChange={(e) =>
+                handleInputChange("monthlyBudget", e.target.value)
+              }
+              disabled={!formData.currencyName}
+            />
+            {errors.monthlyBudget && (
+              <p className="text-sm text-red-600">
+                {errors.monthlyBudget}
+              </p>
+            )}
           </div>
 
           <DialogFooter className="gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
-              size="lg"
               onClick={() => handleOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" size="lg" disabled={!isFormValid}>
+            <Button type="submit" disabled={!isFormValid()}>
               Save Changes
             </Button>
           </DialogFooter>

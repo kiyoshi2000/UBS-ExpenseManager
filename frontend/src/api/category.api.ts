@@ -5,9 +5,8 @@ export interface Category {
   id: number;
   name: string;
   dailyBudget: number;
-  dailyBudgetCurrency: string;
   monthlyBudget: number;
-  monthlyBudgetCurrency: string;
+  currencyName: string;
   active: boolean;
 }
 
@@ -15,17 +14,15 @@ export interface Category {
 export interface CreateCategoryPayload {
   name: string;
   dailyBudget: number;
-  dailyBudgetCurrency: string;
   monthlyBudget: number;
-  monthlyBudgetCurrency: string;
+  currencyName: string;
 }
 
 export interface UpdateCategoryPayload {
   name: string;
   dailyBudget: number;
-  dailyBudgetCurrency: string;
   monthlyBudget: number;
-  monthlyBudgetCurrency: string;
+  currencyName: string;
 }
 
 /**
@@ -40,36 +37,61 @@ export async function getCategories(params: {
 }): Promise<PageableResponse<Category>> {
   const queryParams = new URLSearchParams();
 
-  if (params.page !== undefined) queryParams.append("page", params.page.toString());
-  if (params.size !== undefined) queryParams.append("size", params.size.toString());
+  if (params.page !== undefined)
+    queryParams.append("page", params.page.toString());
+
+  if (params.size !== undefined)
+    queryParams.append("size", params.size.toString());
+
   if (params.sort) {
     if (Array.isArray(params.sort)) {
-      params.sort.forEach(s => queryParams.append("sort", s));
+      params.sort.forEach((s) =>
+        queryParams.append("sort", s)
+      );
     } else {
       queryParams.append("sort", params.sort);
     }
   }
-  if (params.search) queryParams.append("search", params.search);
-  if (params.includeInactive !== undefined) queryParams.append("includeInactive", params.includeInactive.toString());
 
-  const response = await api.get<PageableResponse<Category>>(`/api/expense-categories?${queryParams.toString()}`);
+  if (params.search)
+    queryParams.append("search", params.search);
+
+  if (params.includeInactive !== undefined)
+    queryParams.append(
+      "includeInactive",
+      params.includeInactive.toString()
+    );
+
+  const response = await api.get<PageableResponse<Category>>(
+    `/api/expense-categories?${queryParams.toString()}`
+  );
+
   return response.data;
 }
 
 /**
  * Create a new category
  */
-export async function createCategory(payload: CreateCategoryPayload): Promise<Category> {
-  const response = await api.post<Category>("/api/expense-categories", payload);
+export async function createCategory(
+  payload: CreateCategoryPayload
+): Promise<Category> {
+  const response = await api.post<Category>(
+    "/api/expense-categories",
+    payload
+  );
   return response.data;
 }
 
 /**
  * Update an existing category
  */
-export async function updateCategory(categoryId: number, payload: UpdateCategoryPayload): Promise<Category> {
-  const response = await api.put<Category>(`/api/expense-categories${categoryId}`, payload);
+export async function updateCategory(
+  categoryId: number,
+  payload: UpdateCategoryPayload
+): Promise<Category> {
+  const response = await api.put<Category>(
+    `/api/expense-categories/${categoryId}`,
+    payload
+  );
   return response.data;
 }
-
-
