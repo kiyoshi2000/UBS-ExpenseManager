@@ -137,3 +137,32 @@ export const departmentSchema = z
 
 
 export type DepartmentFormData = z.infer<typeof departmentSchema>;
+
+/* =======================
+   CATEGORY
+======================= */
+
+export const categorySchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+
+    dailyBudget: z
+      .number({ invalid_type_error: "Daily budget is required" })
+      .min(0, "Daily budget must be >= 0"),
+
+    monthlyBudget: z
+      .number({ invalid_type_error: "Monthly budget is required" })
+      .min(0, "Monthly budget must be >= 0"),
+
+    currencyName: z.enum(["USD", "BRL"]),
+  })
+  .refine(
+    (data) => data.dailyBudget <= data.monthlyBudget,
+    {
+      path: ["dailyBudget"],
+      message: "Daily budget cannot be greater than monthly budget",
+    }
+  );
+
+export type CreateCategoryFormData = z.infer<typeof categorySchema>;
+
