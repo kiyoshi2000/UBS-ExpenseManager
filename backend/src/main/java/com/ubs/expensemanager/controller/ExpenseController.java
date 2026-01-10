@@ -4,6 +4,7 @@ import com.ubs.expensemanager.dto.request.ExpenseCreateRequest;
 import com.ubs.expensemanager.dto.request.ExpenseFilterRequest;
 import com.ubs.expensemanager.dto.request.ExpenseUpdateRequest;
 import com.ubs.expensemanager.dto.response.ErrorResponse;
+import com.ubs.expensemanager.dto.response.ExpenseAuditResponse;
 import com.ubs.expensemanager.dto.response.ExpenseResponse;
 import com.ubs.expensemanager.service.ExpenseService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 /**
  * REST controller responsible for expense management endpoints.
@@ -446,5 +448,43 @@ public class ExpenseController {
     log.info("Deleting expense with id={}", id);
     expenseService.delete(id);
     return ResponseEntity.noContent().build();
+  }
+
+  @Operation(
+      summary = "Get Audit History for Expense",
+      description = "Retrieves the complete audit trail of an expense including all historical revisions. " +
+          "Returns all modifications, status changes, and updates ordered by revision number (ascending). " +
+          "Each revision includes the revision type (ADD, MOD, DEL) and timestamp."
+  )
+  @ApiResponses({
+      @ApiResponse(
+          responseCode = "200",
+          description = "Audit history retrieved successfully",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = ExpenseAuditResponse.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "401",
+          description = "Unauthorized",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = ErrorResponse.class)
+          )
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Expense not found",
+          content = @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = ErrorResponse.class)
+          )
+      )
+  })
+  @GetMapping("/{id}/audit")
+  public ResponseEntity<List<ExpenseAuditResponse>> getAuditHistory(@PathVariable Long id) {
+    log.info("Retrieving audit history for expense id={}", id);
+    return ResponseEntity.ok(expenseService.getAuditHistory(id));
   }
 }

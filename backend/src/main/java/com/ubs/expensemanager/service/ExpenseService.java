@@ -3,6 +3,7 @@ package com.ubs.expensemanager.service;
 import com.ubs.expensemanager.dto.request.ExpenseCreateRequest;
 import com.ubs.expensemanager.dto.request.ExpenseFilterRequest;
 import com.ubs.expensemanager.dto.request.ExpenseUpdateRequest;
+import com.ubs.expensemanager.dto.response.ExpenseAuditResponse;
 import com.ubs.expensemanager.dto.response.ExpenseResponse;
 import com.ubs.expensemanager.exception.InvalidStatusTransitionException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
@@ -13,8 +14,16 @@ import com.ubs.expensemanager.repository.CurrencyRepository;
 import com.ubs.expensemanager.repository.ExpenseCategoryRepository;
 import com.ubs.expensemanager.repository.ExpenseRepository;
 import com.ubs.expensemanager.repository.specification.ExpenseSpecifications;
+import jakarta.persistence.EntityManager;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.RevisionType;
+import org.hibernate.envers.query.AuditEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -41,6 +50,7 @@ public class ExpenseService {
     private final ExpenseCategoryRepository expenseCategoryRepository;
     private final CurrencyRepository currencyRepository;
     private final ExpenseMapper expenseMapper;
+    private final EntityManager entityManager;
 
     /**
      * Creates a new expense with budget validation.
@@ -406,5 +416,53 @@ public class ExpenseService {
                     currentUser.getId(), expense.getId(), expense.getUser().getId());
             throw new UnauthorizedExpenseAccessException("You do not have permission to modify this expense");
         }
+    }
+
+    /**
+     * Retrieves the complete audit history for an expense (asc order).
+     *
+     * @param id expense identifier
+     * @return list of all audited versions of the expense
+     */
+    @SuppressWarnings("unchecked")
+    public List<ExpenseAuditResponse> getAuditHistory(Long id) {
+        if (!expenseRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Expense not found");
+        }
+
+        var auditReader = AuditReaderFactory.get(entityManager);
+        
+        List<Object[]> results = auditReader.createQuery()
+                .forRevisionsOfEntity(Expense.class, false, true)
+                .add(AuditEntity.id().eq(id))
+                .getResultList();
+        
+        return results.stream()
+                .map(result -> {
+                    Expense entity = (Expense) result[0];
+                    Number revNumber = (Number) ((org.hibernate.envers.DefaultRevisionEntity) result[1]).getId();
+                    long revTimestamp = ((org.hibernate.envers.DefaultRevisionEntity) result[1]).getTimestamp();
+                    RevisionType revType = (RevisionType) result[2];
+
+                    return ExpenseAuditResponse.builder()
+                            .id(entity.getId())
+                            .amount(entity.getAmount())
+                            .description(entity.getDescription())
+                            .expenseDate(entity.getExpenseDate())
+                            .userId(entity.getUser().getId())
+                            .userName(entity.getUser().getName())
+                            .expenseCategoryId(entity.getExpenseCategory().getId())
+                            .expenseCategoryName(entity.getExpenseCategory().getName())
+                            .currencyName(entity.getCurrency().getName())
+                            .exchangeRate(entity.getCurrency().getExchangeRate())
+                            .receiptUrl(entity.getReceiptUrl())
+                            .status(entity.getStatus())
+                            .revisionNumber(revNumber)
+                            .revisionType((short) revType.ordinal())
+                            .revisionDate(java.time.LocalDateTime.ofInstant(
+                                    Instant.ofEpochMilli(revTimestamp), ZoneId.systemDefault()))
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }
