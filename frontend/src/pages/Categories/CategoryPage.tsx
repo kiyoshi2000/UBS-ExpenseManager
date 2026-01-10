@@ -17,8 +17,6 @@ import {
   updateCategory,
   Category as ApiCategory,
 } from "@/api/category.api";
-import { CreateCategoryFormData } from "@/utils/validation";
-
 interface Category {
   id: number;
   name: string;
