@@ -65,6 +65,7 @@ export const DataTable = <TData,>({
               <TableHead
                 key={String(column.key)}
                 style={column.width ? { width: column.width } : {}}
+                className={column.headerAlign === "right" ? "text-right" : column.headerAlign === "center" ? "text-center" : ""}
               >
                 {column.label}
               </TableHead>

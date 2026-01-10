@@ -84,13 +84,13 @@ describe("DataTable", () => {
       />
     );
 
-    expect(screen.getByText('Actions')).toBeInTheDocument();
+    expect(screen.getByText('Ações')).toBeInTheDocument();
   });
 
   it("does not render actions column when actions are not provided", () => {
     render(<DataTable columns={mockColumns} data={mockData} />);
 
-    expect(screen.queryByText('Actions')).not.toBeInTheDocument();
+    expect(screen.queryByText('Ações')).not.toBeInTheDocument();
   });
 
   it("calls onClick when action is clicked", async () => {

@@ -17,7 +17,9 @@ export const DepartmentPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [openCreate, setOpenCreate] = useState(false);
+  const [createErrorMessage, setCreateErrorMessage] = useState<string>("");
   const [editing, setEditing] = useState<Department | null>(null);
+  const [editErrorMessage, setEditErrorMessage] = useState<string>("");
   const [toDelete, setToDelete] = useState<Department | null>(null);
 
   const canEdit = true; // mesmo pattern do UserPage
@@ -38,11 +40,60 @@ export const DepartmentPage = () => {
     load();
   }, []);
 
+  const formatCurrency = (value: number, currency: "USD" | "BRL") => {
+    const formatted = new Intl.NumberFormat(
+      currency === "BRL" ? "pt-BR" : "en-US",
+      {
+        style: "currency",
+        currency,
+      }
+    ).format(value);
+    
+    // Ensure consistent spacing for USD (add space after $ if not present)
+    if (currency === "USD" && formatted.startsWith("$")) {
+      return formatted.replace("$", "$ ");
+    }
+    return formatted;
+  };
+
   const columns: ColumnDef<Department>[] = [
-    { key: "name", label: "Name" },
-    { key: "monthlyBudget", label: "Monthly Budget" },
-    { key: "dailyBudget", label: "Daily Budget" },
-    { key: "currency", label: "Currency" },
+    {
+      key: "name",
+      label: "Name",
+      render: (row: Department) => {
+        return <span className="font-medium">{row.name}</span>;
+      },
+    },
+    {
+      key: "currency",
+      label: "Currency",
+    },
+    {
+      key: "dailyBudget",
+      label: "Daily Budget",
+      headerAlign: "right",
+      render: (row: Department) => (
+        <span className="text-right block">
+          {formatCurrency(
+            row.dailyBudget ?? 0,
+            row.currency
+          )}
+        </span>
+      ),
+    },
+    {
+      key: "monthlyBudget",
+      label: "Monthly Budget",
+      headerAlign: "right",
+      render: (row: Department) => (
+        <span className="text-right block">
+          {formatCurrency(
+            row.monthlyBudget ?? 0,
+            row.currency
+          )}
+        </span>
+      ),
+    },
   ];
 
   const actions: RowAction<Department>[] = [
@@ -77,22 +128,40 @@ export const DepartmentPage = () => {
 
       <CreateDepartmentDialog
         open={openCreate}
-        onOpenChange={setOpenCreate}
+        onOpenChange={(open) => {
+          if (open) {
+            setCreateErrorMessage("");
+          }
+          setOpenCreate(open);
+        }}
         onSuccess={async () => {
           setOpenCreate(false);
+          setCreateErrorMessage("");
           await load();
         }}
+        error={createErrorMessage}
+        onError={setCreateErrorMessage}
       />
 
       {editing && (
         <EditDepartmentDialog
           department={editing}
           open={!!editing}
-          onOpenChange={() => setEditing(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditing(null);
+              setEditErrorMessage("");
+            } else {
+              setEditErrorMessage("");
+            }
+          }}
           onSuccess={() => {
             setEditing(null);
+            setEditErrorMessage("");
             load();
           }}
+          error={editErrorMessage}
+          onError={setEditErrorMessage}
         />
       )}
 
