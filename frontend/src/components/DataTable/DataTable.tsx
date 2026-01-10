@@ -13,6 +13,7 @@ export interface ColumnDef<TData> {
   label: string;
   render?: (value: TData[keyof TData], row: TData) => ReactNode;
   width?: string;
+  headerAlign?: "left" | "center" | "right";
 }
 
 export interface RowAction<TData> {
@@ -55,12 +56,16 @@ export const DataTable = <TData,>(
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={String(column.key)} style={column.width ? { width: column.width } : {}}>
+                <TableHead 
+                  key={String(column.key)} 
+                  style={column.width ? { width: column.width } : {}}
+                  className={column.headerAlign === "right" ? "text-right" : column.headerAlign === "center" ? "text-center" : ""}
+                >
                   {column.label}
                 </TableHead>
               ))}
               {actions && actions.length > 0 && (
-                <TableHead className="w-20">Ações</TableHead>
+                <TableHead className="w-20">Actions</TableHead>
               )}
             </TableRow>
           </TableHeader>

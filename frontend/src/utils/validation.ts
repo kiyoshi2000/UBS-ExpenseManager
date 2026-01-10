@@ -116,3 +116,10 @@ export const departmentSchema = z.object({
 });
 
 export type DepartmentFormData = z.infer<typeof departmentSchema>;
+
+export interface CreateCategoryFormData {
+  name: string;
+  dailyBudget: number;
+  monthlyBudget: number;
+  currencyName: string;
+}
