@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { MoneyInput } from "@/components/ui/money-input";
 
 export interface EditCategoryFormData {
   name: string;
@@ -28,27 +29,6 @@ interface EditCategoryDialogProps {
 }
 
 const currencyOptions = ["USD", "BRL"];
-
-const parseMoneyToCents = (value: string): number | null => {
-  if (!value) return null;
-  const cleaned = value.replace(/[^\d.]/g, "");
-  const numberValue = Number(cleaned);
-  if (isNaN(numberValue)) return null;
-  return Math.round(numberValue * 100);
-};
-
-const formatCentsToCurrency = (
-  cents: number | null,
-  currency: string
-): string => {
-  if (cents === null || !currency) return "";
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(cents / 100);
-};
 
 export const EditCategoryDialog = ({
   open,
@@ -79,15 +59,9 @@ export const EditCategoryDialog = ({
     field: keyof EditCategoryFormData,
     value: string
   ) => {
-    let parsedValue: any = value;
-
-    if (field === "dailyBudget" || field === "monthlyBudget") {
-      parsedValue = parseMoneyToCents(value);
-    }
-
     setFormData((prev) => ({
       ...prev,
-      [field]: parsedValue,
+      [field]: value,
     }));
 
     const newErrors = { ...errors };
@@ -102,16 +76,24 @@ export const EditCategoryDialog = ({
       else delete newErrors.currencyName;
     }
 
-    if (field === "dailyBudget") {
-      if (parsedValue === null || parsedValue < 0)
-        newErrors.dailyBudget = "Daily budget must be ≥ 0";
-      else delete newErrors.dailyBudget;
-    }
+    setErrors(newErrors);
+  };
 
-    if (field === "monthlyBudget") {
-      if (parsedValue === null || parsedValue < 0)
-        newErrors.monthlyBudget = "Monthly budget must be ≥ 0";
-      else delete newErrors.monthlyBudget;
+  const handleMoneyChange = (
+    field: "dailyBudget" | "monthlyBudget",
+    value: number | null
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value ?? 0,
+    }));
+
+    const newErrors = { ...errors };
+
+    if (value === null || value < 0) {
+      newErrors[field] = `${field === "dailyBudget" ? "Daily" : "Monthly"} budget must be ≥ 0`;
+    } else {
+      delete newErrors[field];
     }
 
     setErrors(newErrors);
@@ -162,10 +144,11 @@ export const EditCategoryDialog = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
           <div className="space-y-2">
-            <Label>
+            <Label htmlFor="name">
               Name <span className="text-red-600">*</span>
             </Label>
             <Input
+              id="name"
               value={formData.name}
               onChange={(e) =>
                 handleInputChange("name", e.target.value)
@@ -178,10 +161,11 @@ export const EditCategoryDialog = ({
 
           {/* Currency */}
           <div className="space-y-2">
-            <Label>
+            <Label htmlFor="currency">
               Currency <span className="text-red-600">*</span>
             </Label>
             <select
+              id="currency"
               value={formData.currencyName}
               onChange={(e) =>
                 handleInputChange("currencyName", e.target.value)
@@ -204,18 +188,15 @@ export const EditCategoryDialog = ({
 
           {/* Daily Budget */}
           <div className="space-y-2">
-            <Label>
+            <Label htmlFor="dailyBudget">
               Daily Budget <span className="text-red-600">*</span>
             </Label>
-            <Input
+            <MoneyInput
+              id="dailyBudget"
               placeholder="0.00"
-              value={formatCentsToCurrency(
-                formData.dailyBudget,
-                formData.currencyName
-              )}
-              onChange={(e) =>
-                handleInputChange("dailyBudget", e.target.value)
-              }
+              value={formData.dailyBudget}
+              currency={formData.currencyName}
+              onChange={(value) => handleMoneyChange("dailyBudget", value)}
               disabled={!formData.currencyName}
             />
             {errors.dailyBudget && (
@@ -227,18 +208,15 @@ export const EditCategoryDialog = ({
 
           {/* Monthly Budget */}
           <div className="space-y-2">
-            <Label>
+            <Label htmlFor="monthlyBudget">
               Monthly Budget <span className="text-red-600">*</span>
             </Label>
-            <Input
+            <MoneyInput
+              id="monthlyBudget"
               placeholder="0.00"
-              value={formatCentsToCurrency(
-                formData.monthlyBudget,
-                formData.currencyName
-              )}
-              onChange={(e) =>
-                handleInputChange("monthlyBudget", e.target.value)
-              }
+              value={formData.monthlyBudget}
+              currency={formData.currencyName}
+              onChange={(value) => handleMoneyChange("monthlyBudget", value)}
               disabled={!formData.currencyName}
             />
             {errors.monthlyBudget && (
