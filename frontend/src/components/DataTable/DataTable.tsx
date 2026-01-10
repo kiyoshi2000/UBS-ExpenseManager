@@ -11,7 +11,7 @@ import {
 export interface ColumnDef<TData> {
   key: keyof TData;
   label: string;
-  render?: (value: TData[keyof TData], row: TData) => ReactNode;
+  render?: (row: TData) => ReactNode;
   width?: string;
 }
 
@@ -83,7 +83,7 @@ export const DataTable = <TData,>(
                   {columns.map((column) => (
                     <TableCell key={String(column.key)}>
                       {column.render
-                        ? column.render(row[column.key], row)
+                        ? column.render(row)
                         : String(row[column.key])}
                     </TableCell>
                   ))}
