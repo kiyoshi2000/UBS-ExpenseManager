@@ -7,7 +7,7 @@ import {
   getDepartments,
   deleteDepartment,
 } from "@/api/department.api";
-import type { Department } from "./types/department";
+import type { Department } from "@/types/department";
 import { CreateDepartmentDialog } from "./components/CreateDepartmentDialog";
 import { EditDepartmentDialog } from "./components/EditDepartmentDialog";
 
