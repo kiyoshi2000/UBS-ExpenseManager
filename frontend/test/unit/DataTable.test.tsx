@@ -163,127 +163,124 @@ describe("DataTable", () => {
 
     const strongElements = screen.getAllByText("John Doe");
     expect(strongElements[0].tagName).toBe("STRONG");
-    });
   });
 
-
-  it('filters actions based on shouldShow', () => {
+  it("filters actions based on shouldShow", () => {
     const mockActions: RowAction<TestData>[] = [
       {
-        label: 'Edit',
+        label: "Edit",
         icon: <span>✏️</span>,
         onClick: vi.fn(),
-        color: 'blue',
+        color: "blue",
       },
       {
-        label: 'Delete',
+        label: "Delete",
         icon: <span>🗑️</span>,
         onClick: vi.fn(),
-        color: 'red',
-        shouldShow: (row) => row.status === 'Active',
+        color: "red",
+        shouldShow: (row) => row.status === "Active",
       },
     ];
 
-    render(<DataTable columns={mockColumns} data={mockData} actions={mockActions} />);
-
-    // Edit should appear in all 3 rows
-    expect(screen.getAllByTitle('Edit')).toHaveLength(3);
-    
-    // Delete should appear only in rows with Active status (2 rows)
-    expect(screen.getAllByTitle('Delete')).toHaveLength(2);
-  });
-
-  it('applies custom className', () => {
-    const { container } = render(
-      <DataTable 
-        columns={mockColumns} 
-        data={mockData} 
-        className="custom-class" 
-      />
-    );
-
-    const tableWrapper = container.querySelector('.custom-class');
-    expect(tableWrapper).toBeInTheDocument();
-  });
-
-  it('applies custom rowClassName', () => {
     render(
-      <DataTable 
-        columns={mockColumns} 
-        data={mockData} 
-        rowClassName="custom-row-class" 
+      <DataTable
+        columns={mockColumns}
+        data={mockData}
+        actions={mockActions}
       />
     );
 
-    const rows = screen.getAllByRole('row');
-    // Skip the header row (index 0)
-    expect(rows[1]).toHaveClass('custom-row-class');
+    expect(screen.getAllByTitle("Edit")).toHaveLength(3);
+    expect(screen.getAllByTitle("Delete")).toHaveLength(2);
   });
 
-  it('renders multiple columns with different data types', () => {
-    const mixedData = [
-      { id: 1, name: 'Test', count: 42, active: true },
-    ];
+  it("applies custom className", () => {
+    const { container } = render(
+      <DataTable
+        columns={mockColumns}
+        data={mockData}
+        className="custom-class"
+      />
+    );
+
+    expect(container.querySelector(".custom-class")).toBeInTheDocument();
+  });
+
+  it("applies custom rowClassName", () => {
+    render(
+      <DataTable
+        columns={mockColumns}
+        data={mockData}
+        rowClassName="custom-row-class"
+      />
+    );
+
+    const rows = screen.getAllByRole("row");
+    expect(rows[1]).toHaveClass("custom-row-class");
+  });
+
+  it("renders multiple columns with different data types", () => {
+    const mixedData = [{ id: 1, name: "Test", count: 42, active: true }];
 
     const mixedColumns: ColumnDef<typeof mixedData[0]>[] = [
-      { key: 'name', label: 'Name' },
-      { key: 'count', label: 'Count' },
-      { key: 'active', label: 'Active' },
+      { key: "name", label: "Name" },
+      { key: "count", label: "Count" },
+      { key: "active", label: "Active" },
     ];
 
     render(<DataTable columns={mixedColumns} data={mixedData} />);
 
-    expect(screen.getByText('Test')).toBeInTheDocument();
-    expect(screen.getByText('42')).toBeInTheDocument();
-    expect(screen.getByText('true')).toBeInTheDocument();
+    expect(screen.getByText("Test")).toBeInTheDocument();
+    expect(screen.getByText("42")).toBeInTheDocument();
+    expect(screen.getByText("true")).toBeInTheDocument();
   });
 
-  it('applies custom width to columns', () => {
+  it("applies custom width to columns", () => {
     const columnsWithWidth: ColumnDef<TestData>[] = [
-      { key: 'name', label: 'Name', width: '200px' },
-      { key: 'email', label: 'Email' },
+      { key: "name", label: "Name", width: "200px" },
+      { key: "email", label: "Email" },
     ];
 
     const { container } = render(
       <DataTable columns={columnsWithWidth} data={mockData} />
     );
 
-    const nameHeader = container.querySelector('th');
-    expect(nameHeader).toHaveStyle({ width: '200px' });
+    const nameHeader = container.querySelector("th");
+    expect(nameHeader).toHaveStyle({ width: "200px" });
   });
 
-  it('applies different colors to actions', () => {
+  it("applies different colors to actions", () => {
     const mockActions: RowAction<TestData>[] = [
       {
-        label: 'Edit',
+        label: "Edit",
         icon: <span>✏️</span>,
         onClick: vi.fn(),
-        color: 'blue',
+        color: "blue",
       },
       {
-        label: 'Delete',
+        label: "Delete",
         icon: <span>🗑️</span>,
         onClick: vi.fn(),
-        color: 'red',
+        color: "red",
       },
       {
-        label: 'Approve',
+        label: "Approve",
         icon: <span>✓</span>,
         onClick: vi.fn(),
-        color: 'green',
+        color: "green",
       },
     ];
 
     const { container } = render(
-      <DataTable columns={mockColumns} data={mockData} actions={mockActions} />
+      <DataTable
+        columns={mockColumns}
+        data={mockData}
+        actions={mockActions}
+      />
     );
 
-    const blueAction = container.querySelector('.text-blue-600');
-    const redAction = container.querySelector('.text-red-600');
-    const greenAction = container.querySelector('.text-green-600');
-
-    expect(blueAction).toBeInTheDocument();
-    expect(redAction).toBeInTheDocument();
-    expect(greenAction).toBeInTheDocument();
+    expect(container.querySelector(".text-blue-600")).toBeInTheDocument();
+    expect(container.querySelector(".text-red-600")).toBeInTheDocument();
+    expect(container.querySelector(".text-green-600")).toBeInTheDocument();
   });
 });
