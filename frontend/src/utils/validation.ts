@@ -103,23 +103,66 @@ export const hasValidationErrors = (
 };
 
 import { z } from "zod";
+
 /* =======================
    DEPARTMENT
 ======================= */
 
-export const departmentSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  monthlyBudget: z
-    .number()
-    .min(0, "Monthly budget must be positive"),
-  currency: z.string().min(1, "Currency is required"),
-});
+export const departmentSchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+
+    monthlyBudget: z
+      .number({ invalid_type_error: "Monthly budget is required" })
+      .min(0, "Monthly budget must be >= 0"),
+
+    dailyBudget: z
+      .number()
+      .min(0, "Daily budget must be >= 0")
+      .nullable()
+      .optional(),
+
+    currency: z.enum(["USD", "BRL"]),
+  })
+  .refine(
+    (data) =>
+      data.dailyBudget === null ||
+      data.dailyBudget === undefined ||
+      data.dailyBudget <= data.monthlyBudget,
+    {
+      path: ["dailyBudget"],
+      message: "Daily budget cannot be greater than monthly budget",
+    }
+  );
+
 
 export type DepartmentFormData = z.infer<typeof departmentSchema>;
 
-export interface CreateCategoryFormData {
-  name: string;
-  dailyBudget: number;
-  monthlyBudget: number;
-  currencyName: string;
-}
+/* =======================
+   CATEGORY
+======================= */
+
+export const categorySchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+
+    dailyBudget: z
+      .number({ invalid_type_error: "Daily budget is required" })
+      .min(0, "Daily budget must be >= 0"),
+
+    monthlyBudget: z
+      .number({ invalid_type_error: "Monthly budget is required" })
+      .min(0, "Monthly budget must be >= 0"),
+
+    currencyName: z.enum(["USD", "BRL"]),
+  })
+  .refine(
+    (data) => data.dailyBudget <= data.monthlyBudget,
+    {
+      path: ["dailyBudget"],
+      message: "Daily budget cannot be greater than monthly budget",
+    }
+  );
+
+export type CreateCategoryFormData = z.infer<typeof categorySchema>;
+

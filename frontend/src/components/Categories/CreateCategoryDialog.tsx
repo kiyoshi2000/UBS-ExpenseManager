@@ -56,13 +56,23 @@ export const CreateCategoryDialog = ({
     const newErrors = { ...errors };
 
     if (field === "name") {
-      if (!value.trim()) newErrors.name = "Name is required";
-      else delete newErrors.name;
+      if (!value.trim()) {
+        newErrors.name = "Name is required";
+      } else {
+        const { name: _name, ...rest } = newErrors;
+        setErrors(rest);
+        return;
+      }
     }
 
     if (field === "currencyName") {
-      if (!value) newErrors.currencyName = "Currency is required";
-      else delete newErrors.currencyName;
+      if (!value) {
+        newErrors.currencyName = "Currency is required";
+      } else {
+        const { currencyName: _currencyName, ...rest } = newErrors;
+        setErrors(rest);
+        return;
+      }
     }
 
     setErrors(newErrors);
@@ -81,11 +91,11 @@ export const CreateCategoryDialog = ({
 
     if (value === null || value < 0) {
       newErrors[field] = `${field === "dailyBudget" ? "Daily" : "Monthly"} budget must be ≥ 0`;
+      setErrors(newErrors);
     } else {
-      delete newErrors[field];
+      const { [field]: _, ...rest } = newErrors;
+      setErrors(rest);
     }
-
-    setErrors(newErrors);
   };
 
   const isFormValid = () =>

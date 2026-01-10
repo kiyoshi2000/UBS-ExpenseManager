@@ -17,8 +17,6 @@ import {
   updateCategory,
   Category as ApiCategory,
 } from "@/api/category.api";
-import { CreateCategoryFormData } from "@/utils/validation";
-
 interface Category {
   id: number;
   name: string;
@@ -159,9 +157,8 @@ export const CategoriesPage = () => {
     {
       key: "name",
       label: "Name",
-      render: (value: Category[keyof Category]) => {
-        const displayValue = typeof value === "string" ? value : "";
-        return <span className="font-medium">{displayValue}</span>;
+      render: (row: Category) => {
+        return <span className="font-medium">{row.name}</span>;
       },
     },
     {
@@ -172,10 +169,10 @@ export const CategoriesPage = () => {
       key: "dailyBudget",
       label: "Daily Budget",
       headerAlign: "right",
-      render: (value, row) => (
+      render: (row: Category) => (
         <span className="text-right block">
           {formatCurrency(
-            value as number,
+            row.dailyBudget,
             row.currencyName as "USD" | "BRL"
           )}
         </span>
@@ -185,10 +182,10 @@ export const CategoriesPage = () => {
       key: "monthlyBudget",
       label: "Monthly Budget",
       headerAlign: "right",
-      render: (value, row) => (
+      render: (row: Category) => (
         <span className="text-right block">
           {formatCurrency(
-            value as number,
+            row.monthlyBudget,
             row.currencyName as "USD" | "BRL"
           )}
         </span>

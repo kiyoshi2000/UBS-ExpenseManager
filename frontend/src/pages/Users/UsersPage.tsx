@@ -227,9 +227,8 @@ export const UsersPage = () => {
     {
       key: "name",
       label: "Name",
-      render: (value: User[keyof User]) => {
-        const displayValue = typeof value === "string" ? value : "";
-        return <span className="font-medium">{displayValue}</span>;
+      render: (row: User) => {
+        return <span className="font-medium">{row.name}</span>;
       },
     },
     {
@@ -243,20 +242,19 @@ export const UsersPage = () => {
     {
       key: "manager",
       label: "Manager",
-      render: (value: User[keyof User]) => {
-        if (value && typeof value === "object") {
-          const manager = value as { email?: string; name?: string };
-          return String(manager.email || manager.name || "-");
+      render: (row: User) => {
+        if (row.manager) {
+          return String(row.manager.email || row.manager.name || "-");
         }
-        return String(value || "-");
+        return "-";
       },
     },
 
     {
       key: "role",
       label: "Role",
-      render: (value: User[keyof User]) => {
-        const roleValue = typeof value === "string" ? value : "";
+      render: (row: User) => {
+        const roleValue = row.role;
         
         if (roleValue === "ROLE_EMPLOYEE" || roleValue === "EMPLOYEE") {
           return "Employee";
@@ -273,9 +271,10 @@ export const UsersPage = () => {
                roleValue.replace("ROLE_", "").slice(1).toLowerCase();
       },
     },
-    {  key: "status",
+    {
+      key: "status",
       label: "Status",
-      render: (_value: User[keyof User], row: User) => {
+      render: (row: User) => {
         const isActive = row.status === "Active";
         return (
           <div className="flex items-center gap-2">
