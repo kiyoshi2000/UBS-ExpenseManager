@@ -25,8 +25,11 @@ public class DepartmentResponse {
     @Schema(description = "Monthly budget allocated to the department", example = "10000.00")
     private BigDecimal monthlyBudget;
 
+    @Schema(description = "Currency identifier", example = "1")
+    private Long currencyId;
+
     @Schema(description = "Currency code (ISO 4217)", example = "USD")
-    private String currency;
+    private String currencyName;
 
     @Schema(description = "Daily budget allocated to the department", example = "500.00")
     private BigDecimal dailyBudget;

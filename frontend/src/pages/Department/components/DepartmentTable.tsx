@@ -47,7 +47,7 @@ export const DepartmentTable = ({
               <tr key={dept.id} className="border-b">
                 <td className="p-3">{dept.name}</td>
                 <td className="p-3">{dept.monthlyBudget}</td>
-                <td className="p-3">{dept.currency}</td>
+                <td className="p-3">{dept.currencyName}</td>
 
                 {canEdit && (
                   <td className="p-3 flex gap-2">

@@ -6,7 +6,9 @@ import com.ubs.expensemanager.dto.response.DepartmentResponse;
 import com.ubs.expensemanager.exception.ConflictException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
 import com.ubs.expensemanager.mapper.DepartmentMapper;
+import com.ubs.expensemanager.model.Currency;
 import com.ubs.expensemanager.model.Department;
+import com.ubs.expensemanager.repository.CurrencyRepository;
 import com.ubs.expensemanager.repository.DepartmentRepository;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,13 +19,15 @@ import org.springframework.stereotype.Service;
  * Service responsible for handling business logic related to Departments.
  *
  * <p>This class orchestrates validation, persistence and transformation
- * between entities and DTOs.</p>
+ * between entities and DTOs. All department currency references are validated
+ * against the currencies table to ensure referential integrity.</p>
  */
 @Service
 @RequiredArgsConstructor
 public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
+    private final CurrencyRepository currencyRepository;
     private final DepartmentMapper departmentMapper;
 
     /**
@@ -31,6 +35,9 @@ public class DepartmentService {
      *
      * @param request data required to create a department
      * @return created department as response DTO
+     * @throws ResourceNotFoundException if the specified currency does not exist
+     * @throws ConflictException if a department with the same name already exists
+     * @throws IllegalArgumentException if daily budget exceeds monthly budget
      */
     public DepartmentResponse create(DepartmentCreateRequest request) {
 
@@ -38,6 +45,10 @@ public class DepartmentService {
         if (departmentRepository.existsByNameIgnoreCase(request.getName())) {
             throw new ConflictException("Department with this name already exists");
         }
+
+        // Validate that the currency exists
+        Currency currency = currencyRepository.findById(request.getCurrencyId())
+                .orElseThrow(() -> new ResourceNotFoundException("Currency not found with ID: " + request.getCurrencyId()));
 
         if (request.getDailyBudget() != null &&
             request.getDailyBudget().compareTo(request.getMonthlyBudget()) > 0) {
@@ -50,7 +61,7 @@ public class DepartmentService {
                 .name(request.getName())
                 .monthlyBudget(request.getMonthlyBudget())
                 .dailyBudget(request.getDailyBudget())
-                .currency(request.getCurrency())
+                .currency(currency)
                 .build();
 
         Department savedDepartment = departmentRepository.save(department);
@@ -76,6 +87,9 @@ public class DepartmentService {
      * @param id      department identifier
      * @param request updated data
      * @return updated department
+     * @throws ResourceNotFoundException if department or currency does not exist
+     * @throws ConflictException if another department with the same name already exists
+     * @throws IllegalArgumentException if daily budget exceeds monthly budget
      */
     public DepartmentResponse update(Long id, DepartmentUpdateRequest request) {
 
@@ -87,6 +101,11 @@ public class DepartmentService {
                 && departmentRepository.existsByNameIgnoreCase(request.getName())) {
             throw new ConflictException("Department with this name already exists");
         }
+
+        // Validate that the currency exists
+        Currency currency = currencyRepository.findById(request.getCurrencyId())
+                .orElseThrow(() -> new ResourceNotFoundException("Currency not found with ID: " + request.getCurrencyId()));
+
         if (request.getDailyBudget() != null &&
             request.getDailyBudget().compareTo(request.getMonthlyBudget()) > 0) {
             throw new IllegalArgumentException(
@@ -97,7 +116,7 @@ public class DepartmentService {
         department.setName(request.getName());
         department.setMonthlyBudget(request.getMonthlyBudget());
         department.setDailyBudget(request.getDailyBudget()); 
-        department.setCurrency(request.getCurrency());
+        department.setCurrency(currency);
 
         Department updatedDepartment = departmentRepository.save(department);
 
@@ -108,6 +127,7 @@ public class DepartmentService {
      * Deletes a department by its identifier.
      *
      * @param id department identifier
+     * @throws ResourceNotFoundException if department does not exist
      */
     public void delete(Long id) {
         if (!departmentRepository.existsById(id)) {

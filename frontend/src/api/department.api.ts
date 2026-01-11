@@ -5,7 +5,7 @@ export interface DepartmentPayload {
   name: string;
   monthlyBudget: number;
   dailyBudget?: number;
-  currency: "USD" | "BRL";
+  currencyId: number;
 }
 
 /**

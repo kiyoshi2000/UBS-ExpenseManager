@@ -7,8 +7,10 @@ import {
   departmentSchema,
   DepartmentFormData,
 } from "@/utils/validation";
-import type { Department } from "@/types/department";
+import type { Department, Currency } from "@/types/department";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { getCurrencies } from "@/api/currency.api";
 
 interface Props {
   initialData?: Department | null;
@@ -16,6 +18,9 @@ interface Props {
 }
 
 export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [loadingCurrencies, setLoadingCurrencies] = useState(true);
+
   const {
     register,
     handleSubmit,
@@ -29,11 +34,28 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
       name: initialData?.name ?? "",
       monthlyBudget: initialData?.monthlyBudget ?? 0,
       dailyBudget: initialData?.dailyBudget ?? null,
-      currency: initialData?.currency ?? "USD",
+      currencyId: initialData?.currencyId ?? 0,
     },
   });
 
-  const selectedCurrency = watch("currency");
+  useEffect(() => {
+    const fetchCurrencies = async () => {
+      try {
+        setLoadingCurrencies(true);
+        const currenciesList = await getCurrencies();
+        setCurrencies(currenciesList);
+      } catch (error) {
+        console.error("Failed to load currencies:", error);
+      } finally {
+        setLoadingCurrencies(false);
+      }
+    };
+
+    fetchCurrencies();
+  }, []);
+
+  const selectedCurrencyId = watch("currencyId");
+  const selectedCurrency = currencies.find(c => c.id === selectedCurrencyId);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -54,20 +76,26 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
 
       {/* Currency */}
       <div className="space-y-2">
-        <Label htmlFor="currency">
+        <Label htmlFor="currencyId">
           Currency <span className="text-red-600">*</span>
         </Label>
         <select
-          id="currency"
+          id="currencyId"
           className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          {...register("currency")}
+          {...register("currencyId", { valueAsNumber: true })}
+          disabled={loadingCurrencies}
         >
-          <option value="">Select currency</option>
-          <option value="USD">USD</option>
-          <option value="BRL">BRL</option>
+          <option value={0}>
+            {loadingCurrencies ? "Loading currencies..." : "Select currency"}
+          </option>
+          {currencies.map((currency) => (
+            <option key={currency.id} value={currency.id}>
+              {currency.name}
+            </option>
+          ))}
         </select>
-        {errors.currency && (
-          <p className="text-sm text-red-600">{errors.currency.message}</p>
+        {errors.currencyId && (
+          <p className="text-sm text-red-600">{errors.currencyId.message}</p>
         )}
       </div>
 
@@ -84,9 +112,9 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
               id="monthlyBudget"
               placeholder="0.00"
               value={field.value}
-              currency={selectedCurrency}
+              currency={selectedCurrency?.name || "USD"}
               onChange={field.onChange}
-              disabled={!selectedCurrency}
+              disabled={!selectedCurrencyId}
             />
           )}
         />
@@ -106,9 +134,9 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
               id="dailyBudget"
               placeholder="0.00"
               value={field.value}
-              currency={selectedCurrency}
+              currency={selectedCurrency?.name || "USD"}
               onChange={field.onChange}
-              disabled={!selectedCurrency}
+              disabled={!selectedCurrencyId}
             />
           )}
         />
@@ -117,7 +145,7 @@ export const DepartmentForm = ({ initialData, onSubmit }: Props) => {
         )}
       </div>
 
-      <Button type="submit" disabled={!isValid || isSubmitting}>
+      <Button type="submit" disabled={!isValid || isSubmitting || loadingCurrencies}>
         {isSubmitting ? "Saving..." : initialData ? "Update" : "Create"}
       </Button>
     </form>

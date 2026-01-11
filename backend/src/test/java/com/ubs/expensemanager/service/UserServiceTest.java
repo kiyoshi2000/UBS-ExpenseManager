@@ -7,6 +7,7 @@ import com.ubs.expensemanager.dto.response.UserResponse;
 import com.ubs.expensemanager.exception.ManagerRequiredException;
 import com.ubs.expensemanager.exception.ResourceNotFoundException;
 import com.ubs.expensemanager.mapper.UserMapper;
+import com.ubs.expensemanager.model.Currency;
 import com.ubs.expensemanager.model.Department;
 import com.ubs.expensemanager.model.User;
 import com.ubs.expensemanager.model.UserRole;
@@ -57,12 +58,18 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        Currency currency = Currency.builder()
+                .id(1L)
+                .name("USD")
+                .exchangeRate(new BigDecimal("1.0"))
+                .build();
+
         itDepartment = Department.builder()
                 .id(1L)
                 .name("IT")
                 .monthlyBudget(new BigDecimal("50000.00"))
                 .dailyBudget(new BigDecimal("2000.00"))
-                .currency("USD")
+                .currency(currency)
                 .build();
 
         manager = User.builder()

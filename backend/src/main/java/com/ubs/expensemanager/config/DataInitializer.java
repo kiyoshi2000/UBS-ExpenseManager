@@ -50,6 +50,10 @@ public class DataInitializer {
         // Initialize currencies first (will create audit records automatically via Envers)
         initializeCurrencies();
         
+        // Get USD currency (guaranteed to exist after initializeCurrencies)
+        Currency usdCurrency = currencyRepository.findByName("USD")
+                .orElseThrow(() -> new IllegalStateException("USD currency should have been created"));
+        
         // Create IT department if it doesn't exist
         Department itDepartment = departmentRepository.findByNameIgnoreCase("IT")
                 .orElseGet(() -> departmentRepository.save(
@@ -57,7 +61,7 @@ public class DataInitializer {
                                 .name("IT")
                                 .monthlyBudget(new BigDecimal("50000.00"))
                                 .dailyBudget(new BigDecimal("2000.00"))
-                                .currency("USD")
+                                .currency(usdCurrency)
                                 .build()
                 ));
 

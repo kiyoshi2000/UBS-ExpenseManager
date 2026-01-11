@@ -122,7 +122,7 @@ export const departmentSchema = z
       .nullable()
       .optional(),
 
-    currency: z.enum(["USD", "BRL"]),
+    currencyId: z.number().min(1, "Currency is required"),
   })
   .refine(
     (data) =>

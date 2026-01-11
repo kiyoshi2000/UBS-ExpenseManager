@@ -28,8 +28,20 @@ export const DepartmentPage = () => {
     try {
       setLoading(true);
       const data = await getDepartments();
+      console.log('[DepartmentPage] Loaded departments:', data);
+      // Verify all departments have currencyName
+      data.forEach((d, idx) => {
+        console.log(`[DepartmentPage] Department ${idx}:`, {
+          id: d.id,
+          name: d.name,
+          currencyId: d.currencyId,
+          currencyName: d.currencyName,
+          type: typeof d.currencyName,
+        });
+      });
       setDepartments([...data]);
-    } catch {
+    } catch (err) {
+      console.error('[DepartmentPage] Error loading departments:', err);
       setError("Failed to load departments");
     } finally {
       setLoading(false);
@@ -40,20 +52,26 @@ export const DepartmentPage = () => {
     load();
   }, []);
 
-  const formatCurrency = (value: number, currency: "USD" | "BRL") => {
-    const formatted = new Intl.NumberFormat(
-      currency === "BRL" ? "pt-BR" : "en-US",
-      {
-        style: "currency",
-        currency,
+  const formatCurrency = (value: number, currency?: string) => {
+    const currencyCode = currency || "USD"; // default to USD if not provided
+    try {
+      const formatted = new Intl.NumberFormat(
+        currencyCode === "BRL" ? "pt-BR" : "en-US",
+        {
+          style: "currency",
+          currency: currencyCode,
+        }
+      ).format(value);
+      
+      // Ensure consistent spacing for USD (add space after $ if not present)
+      if (currencyCode === "USD" && formatted.startsWith("$")) {
+        return formatted.replace("$", "$ ");
       }
-    ).format(value);
-    
-    // Ensure consistent spacing for USD (add space after $ if not present)
-    if (currency === "USD" && formatted.startsWith("$")) {
-      return formatted.replace("$", "$ ");
+      return formatted;
+    } catch (error) {
+      console.error(`[formatCurrency] Error formatting ${value} with currency ${currency}:`, error);
+      throw error;
     }
-    return formatted;
   };
 
   const columns: ColumnDef<Department>[] = [
@@ -65,34 +83,42 @@ export const DepartmentPage = () => {
       },
     },
     {
-      key: "currency",
+      key: "currencyName",
       label: "Currency",
     },
     {
       key: "dailyBudget",
       label: "Daily Budget",
       headerAlign: "right",
-      render: (row: Department) => (
-        <span className="text-right block">
-          {formatCurrency(
-            row.dailyBudget ?? 0,
-            row.currency
-          )}
-        </span>
-      ),
+      render: (row: Department) => {
+        const currency = row.currencyName || "USD";
+        console.log(`[DepartmentPage:dailyBudget] rendering with currency=${currency}`, row);
+        return (
+          <span className="text-right block">
+            {formatCurrency(
+              row.dailyBudget ?? 0,
+              currency
+            )}
+          </span>
+        );
+      },
     },
     {
       key: "monthlyBudget",
       label: "Monthly Budget",
       headerAlign: "right",
-      render: (row: Department) => (
-        <span className="text-right block">
-          {formatCurrency(
-            row.monthlyBudget ?? 0,
-            row.currency
-          )}
-        </span>
-      ),
+      render: (row: Department) => {
+        const currency = row.currencyName || "USD";
+        console.log(`[DepartmentPage:monthlyBudget] rendering with currency=${currency}`, row);
+        return (
+          <span className="text-right block">
+            {formatCurrency(
+              row.monthlyBudget ?? 0,
+              currency
+            )}
+          </span>
+        );
+      },
     },
   ];
 

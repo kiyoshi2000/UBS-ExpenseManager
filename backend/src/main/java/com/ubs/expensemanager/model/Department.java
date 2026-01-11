@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Builder;
+import org.hibernate.envers.Audited;
 import java.math.BigDecimal;
 
 /**
@@ -22,6 +23,7 @@ import java.math.BigDecimal;
         @UniqueConstraint(name = "uk_departments_name", columnNames = "name")
     }
 )
+@Audited
 @Getter
 @Setter
 @NoArgsConstructor
@@ -61,7 +63,10 @@ public class Department {
 
     /**
      * Currency used for the department's budget.
+     * References the Currency entity to ensure referential integrity
+     * and exchange-rate flexibility.
      */
-    @Column(nullable = false, length = 3)
-    private String currency;
+    @ManyToOne
+    @JoinColumn(name = "currency_id", nullable = false)
+    private Currency currency;
 }

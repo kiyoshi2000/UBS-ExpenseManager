@@ -137,17 +137,18 @@ export const CategoriesPage = () => {
     setCurrentPage(1);
   };
 
-  const formatCurrency = (value: number, currency: "USD" | "BRL") => {
+  const formatCurrency = (value: number, currency?: string) => {
+    const currencyCode = currency || "USD"; // default to USD if not provided
     const formatted = new Intl.NumberFormat(
-      currency === "BRL" ? "pt-BR" : "en-US",
+      currencyCode === "BRL" ? "pt-BR" : "en-US",
       {
         style: "currency",
-        currency,
+        currency: currencyCode,
       }
     ).format(value);
     
     // Ensure consistent spacing for USD (add space after $ if not present)
-    if (currency === "USD" && formatted.startsWith("$")) {
+    if (currencyCode === "USD" && formatted.startsWith("$")) {
       return formatted.replace("$", "$ ");
     }
     return formatted;
@@ -173,7 +174,7 @@ export const CategoriesPage = () => {
         <span className="text-right block">
           {formatCurrency(
             row.dailyBudget,
-            row.currencyName as "USD" | "BRL"
+            row.currencyName
           )}
         </span>
       ),
@@ -186,7 +187,7 @@ export const CategoriesPage = () => {
         <span className="text-right block">
           {formatCurrency(
             row.monthlyBudget,
-            row.currencyName as "USD" | "BRL"
+            row.currencyName
           )}
         </span>
       ),

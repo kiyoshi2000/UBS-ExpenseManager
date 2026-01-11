@@ -30,9 +30,9 @@ public class DepartmentCreateRequest {
     @PositiveOrZero(message = "monthly budget must be zero or positive")
     private BigDecimal monthlyBudget;
 
-    @Schema(description = "Currency code (ISO 4217)", example = "USD")
-    @NotBlank(message = "currency is required")
-    private String currency;
+    @Schema(description = "Currency ID (foreign key reference)", example = "1")
+    @NotNull(message = "currency ID is required")
+    private Long currencyId;
 
     @Schema(description = "Daily budget allocated to the department", example = "500.00")
     @PositiveOrZero(message = "daily budget must be zero or positive")

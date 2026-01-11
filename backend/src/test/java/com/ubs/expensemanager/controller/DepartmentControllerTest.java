@@ -58,7 +58,7 @@ class DepartmentControllerTest {
         DepartmentCreateRequest request = DepartmentCreateRequest.builder()
                 .name("Finance")
                 .monthlyBudget(BigDecimal.valueOf(3000))
-                .currency("USD")
+                .currencyId(1L)
                 .build();
 
         when(departmentService.create(any()))
@@ -67,7 +67,8 @@ class DepartmentControllerTest {
                         .id(1L)
                         .name("Finance")
                         .monthlyBudget(BigDecimal.valueOf(3000))
-                        .currency("USD")
+                        .currencyId(1L)
+                        .currencyName("USD")
                         .build()
                 );
 
@@ -87,7 +88,7 @@ class DepartmentControllerTest {
         DepartmentCreateRequest request = DepartmentCreateRequest.builder()
                 .name("") // invalid
                 .monthlyBudget(BigDecimal.valueOf(-10)) // invalid
-                .currency("") // invalid
+                .currencyId(0L) // invalid
                 .build();
 
         mockMvc.perform(post(DEPARTMENTS_URL)
@@ -98,7 +99,7 @@ class DepartmentControllerTest {
                 .andExpect(jsonPath("$.error").value("Validation error"))
                 .andExpect(jsonPath("$.errors.name").exists())
                 .andExpect(jsonPath("$.errors.monthlyBudget").exists())
-                .andExpect(jsonPath("$.errors.currency").exists());
+                .andExpect(jsonPath("$.errors.currencyId").exists());
     }
 
     /**
@@ -110,7 +111,7 @@ class DepartmentControllerTest {
         DepartmentCreateRequest request = DepartmentCreateRequest.builder()
                 .name("Finance")
                 .monthlyBudget(BigDecimal.valueOf(3000))
-                .currency("USD")
+                .currencyId(1L)
                 .build();
 
         when(departmentService.create(any()))
@@ -131,7 +132,7 @@ class DepartmentControllerTest {
         DepartmentCreateRequest request = DepartmentCreateRequest.builder()
                 .name("Finance")
                 .monthlyBudget(BigDecimal.valueOf(3000))
-                .currency("USD")
+                .currencyId(1L)
                 .build();
 
         when(departmentService.create(any()))
