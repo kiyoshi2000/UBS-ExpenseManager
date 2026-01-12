@@ -24,12 +24,33 @@ public interface ExpenseRepository extends
 
     /**
      * Calculates the total expense amount for a user in a specific category on a specific date.
-     * Excludes REJECTED expenses and the current expense from the calculation.
+     * Excludes REJECTED expenses from the calculation.
      *
      * @param userId the user ID
      * @param categoryId the expense category ID
      * @param date the expense date
-     * @param expenseId the current expense ID to exclude from calculation
+     * @return the sum of all expense amounts, or 0 if no expenses found
+     */
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
+           "WHERE e.user.id = :userId " +
+           "AND e.expenseCategory.id = :categoryId " +
+           "AND e.expenseDate = :date " +
+           "AND e.status != 'REJECTED'")
+    BigDecimal sumAmountByUserAndCategoryAndDate(
+            @Param("userId") Long userId,
+            @Param("categoryId") Long categoryId,
+            @Param("date") LocalDate date
+    );
+
+    /**
+     * Calculates the total expense amount for a user in a specific category on a specific date,
+     * excluding a specific expense.
+     * Excludes REJECTED expenses and the specified expense from the calculation.
+     *
+     * @param userId the user ID
+     * @param categoryId the expense category ID
+     * @param date the expense date
+     * @param expenseId the expense ID to exclude from calculation
      * @return the sum of all expense amounts, or 0 if no expenses found
      */
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
@@ -38,7 +59,7 @@ public interface ExpenseRepository extends
            "AND e.expenseDate = :date " +
            "AND e.id != :expenseId " +
            "AND e.status != 'REJECTED'")
-    BigDecimal sumAmountByUserAndCategoryAndDate(
+    BigDecimal sumAmountByUserAndCategoryAndDateExcludingExpense(
             @Param("userId") Long userId,
             @Param("categoryId") Long categoryId,
             @Param("date") LocalDate date,
@@ -47,13 +68,36 @@ public interface ExpenseRepository extends
 
     /**
      * Calculates the total expense amount for a user in a specific category within a date range.
-     * Excludes REJECTED expenses and the current expense from the calculation.
+     * Excludes REJECTED expenses from the calculation.
      *
      * @param userId the user ID
      * @param categoryId the expense category ID
      * @param startDate the start date of the range (inclusive)
      * @param endDate the end date of the range (inclusive)
-     * @param expenseId the current expense ID to exclude from calculation
+     * @return the sum of all expense amounts, or 0 if no expenses found
+     */
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
+           "WHERE e.user.id = :userId " +
+           "AND e.expenseCategory.id = :categoryId " +
+           "AND e.expenseDate BETWEEN :startDate AND :endDate " +
+           "AND e.status != 'REJECTED'")
+    BigDecimal sumAmountByUserAndCategoryAndDateRange(
+            @Param("userId") Long userId,
+            @Param("categoryId") Long categoryId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    /**
+     * Calculates the total expense amount for a user in a specific category within a date range,
+     * excluding a specific expense.
+     * Excludes REJECTED expenses and the specified expense from the calculation.
+     *
+     * @param userId the user ID
+     * @param categoryId the expense category ID
+     * @param startDate the start date of the range (inclusive)
+     * @param endDate the end date of the range (inclusive)
+     * @param expenseId the expense ID to exclude from calculation
      * @return the sum of all expense amounts, or 0 if no expenses found
      */
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
@@ -62,7 +106,7 @@ public interface ExpenseRepository extends
            "AND e.expenseDate BETWEEN :startDate AND :endDate " +
            "AND e.id != :expenseId " +
            "AND e.status != 'REJECTED'")
-    BigDecimal sumAmountByUserAndCategoryAndDateRange(
+    BigDecimal sumAmountByUserAndCategoryAndDateRangeExcludingExpense(
             @Param("userId") Long userId,
             @Param("categoryId") Long categoryId,
             @Param("startDate") LocalDate startDate,
@@ -82,11 +126,29 @@ public interface ExpenseRepository extends
 
     /**
      * Calculates the total expense amount for a department on a specific date.
-     * Excludes REJECTED expenses and the current expense from the calculation.
+     * Excludes REJECTED expenses from the calculation.
      *
      * @param departmentId the department ID
      * @param date the expense date
-     * @param expenseId the current expense ID to exclude from calculation
+     * @return the sum of all expense amounts, or 0 if no expenses found
+     */
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
+           "WHERE e.user.department.id = :departmentId " +
+           "AND e.expenseDate = :date " +
+           "AND e.status != 'REJECTED'")
+    BigDecimal sumAmountByDepartmentAndDate(
+            @Param("departmentId") Long departmentId,
+            @Param("date") LocalDate date
+    );
+
+    /**
+     * Calculates the total expense amount for a department on a specific date,
+     * excluding a specific expense.
+     * Excludes REJECTED expenses and the specified expense from the calculation.
+     *
+     * @param departmentId the department ID
+     * @param date the expense date
+     * @param expenseId the expense ID to exclude from calculation
      * @return the sum of all expense amounts, or 0 if no expenses found
      */
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
@@ -94,7 +156,7 @@ public interface ExpenseRepository extends
            "AND e.expenseDate = :date " +
            "AND e.id != :expenseId " +
            "AND e.status != 'REJECTED'")
-    BigDecimal sumAmountByDepartmentAndDate(
+    BigDecimal sumAmountByDepartmentAndDateExcludingExpense(
             @Param("departmentId") Long departmentId,
             @Param("date") LocalDate date,
             @Param("expenseId") Long expenseId
@@ -102,12 +164,32 @@ public interface ExpenseRepository extends
 
     /**
      * Calculates the total expense amount for a department within a date range.
-     * Excludes REJECTED expenses and the current expense from the calculation.
+     * Excludes REJECTED expenses from the calculation.
      *
      * @param departmentId the department ID
      * @param startDate the start date of the range (inclusive)
      * @param endDate the end date of the range (inclusive)
-     * @param expenseId the current expense ID to exclude from calculation
+     * @return the sum of all expense amounts, or 0 if no expenses found
+     */
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
+           "WHERE e.user.department.id = :departmentId " +
+           "AND e.expenseDate BETWEEN :startDate AND :endDate " +
+           "AND e.status != 'REJECTED'")
+    BigDecimal sumAmountByDepartmentAndDateRange(
+            @Param("departmentId") Long departmentId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    /**
+     * Calculates the total expense amount for a department within a date range,
+     * excluding a specific expense.
+     * Excludes REJECTED expenses and the specified expense from the calculation.
+     *
+     * @param departmentId the department ID
+     * @param startDate the start date of the range (inclusive)
+     * @param endDate the end date of the range (inclusive)
+     * @param expenseId the expense ID to exclude from calculation
      * @return the sum of all expense amounts, or 0 if no expenses found
      */
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
@@ -115,7 +197,7 @@ public interface ExpenseRepository extends
            "AND e.expenseDate BETWEEN :startDate AND :endDate " +
            "AND e.id != :expenseId " +
            "AND e.status != 'REJECTED'")
-    BigDecimal sumAmountByDepartmentAndDateRange(
+    BigDecimal sumAmountByDepartmentAndDateRangeExcludingExpense(
             @Param("departmentId") Long departmentId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
