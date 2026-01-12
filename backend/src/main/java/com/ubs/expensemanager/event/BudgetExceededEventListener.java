@@ -41,8 +41,10 @@ public class BudgetExceededEventListener {
                 : AlertType.CATEGORY;
 
         // Check if there's already an alert for this expense (regardless of type)
-        List<Alert> existingAlerts = alertRepository.findAllByExpenseAndTypeAndStatus(
-                event.getExpense(), AlertType.CATEGORY, AlertStatus.NEW);
+        // Create a mutable list to combine results from both queries
+        List<Alert> existingAlerts = new java.util.ArrayList<>(
+                alertRepository.findAllByExpenseAndTypeAndStatus(
+                        event.getExpense(), AlertType.CATEGORY, AlertStatus.NEW));
         
         // Also check for ALL type alerts
         existingAlerts.addAll(alertRepository.findAllByExpenseAndTypeAndStatus(
