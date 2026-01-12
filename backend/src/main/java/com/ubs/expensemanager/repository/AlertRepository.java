@@ -57,4 +57,14 @@ public interface AlertRepository extends
      * @return an optional containing the alert if found, or empty if not found
      */
     Optional<Alert> findByExpenseAndTypeAndStatus(Expense expense, AlertType type, AlertStatus status);
+
+    /**
+     * Finds all alerts with the specified expense, type, and status.
+     *
+     * @param expense the expense associated with the alerts
+     * @param type the alert type
+     * @param status the alert status
+     * @return a list of alerts matching the criteria
+     */
+    List<Alert> findAllByExpenseAndTypeAndStatus(Expense expense, AlertType type, AlertStatus status);
 }

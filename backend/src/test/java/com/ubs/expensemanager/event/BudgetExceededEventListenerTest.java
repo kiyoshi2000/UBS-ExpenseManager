@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -126,8 +127,12 @@ class BudgetExceededEventListenerTest {
     @Test
     void handleBudgetExceededEvent_categoryEvent_createsNewAlert() {
         // Given
-        // No need to stub findByExpenseAndTypeAndStatus for CATEGORY events
-        // as it's only called for DEPARTMENT events
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
+                eq(expense), eq(AlertType.CATEGORY), eq(AlertStatus.NEW)))
+                .thenReturn(List.of());
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
+                eq(expense), eq(AlertType.ALL), eq(AlertStatus.NEW)))
+                .thenReturn(List.of());
 
         // When
         eventListener.handleBudgetExceededEvent(categoryEvent);
@@ -144,7 +149,12 @@ class BudgetExceededEventListenerTest {
     @Test
     void handleBudgetExceededEvent_departmentEvent_createsNewAlert() {
         // Given
-        when(alertRepository.findByExpenseAndTypeAndStatus(any(), any(), any())).thenReturn(Optional.empty());
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
+                eq(expense), eq(AlertType.CATEGORY), eq(AlertStatus.NEW)))
+                .thenReturn(List.of());
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
+                eq(expense), eq(AlertType.ALL), eq(AlertStatus.NEW)))
+                .thenReturn(List.of());
 
         // When
         eventListener.handleBudgetExceededEvent(departmentEvent);
@@ -169,9 +179,12 @@ class BudgetExceededEventListenerTest {
                 .expense(expense)
                 .build();
 
-        when(alertRepository.findByExpenseAndTypeAndStatus(
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
                 eq(expense), eq(AlertType.CATEGORY), eq(AlertStatus.NEW)))
-                .thenReturn(Optional.of(existingAlert));
+                .thenReturn(List.of(existingAlert));
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
+                eq(expense), eq(AlertType.ALL), eq(AlertStatus.NEW)))
+                .thenReturn(List.of());
 
         // When
         eventListener.handleBudgetExceededEvent(departmentEvent);
@@ -186,6 +199,75 @@ class BudgetExceededEventListenerTest {
         // Verify that the message was updated to include department information
         assertTrue(savedAlert.getMessage().contains("Daily budget exceeded for category 'Food'"));
         assertTrue(savedAlert.getMessage().contains("Daily budget exceeded for department"));
+    }
+
+    @Test
+    void handleBudgetExceededEvent_multipleCategoryEvents_consolidatesIntoSingleAlert() {
+        // Given - First event creates an alert
+        BudgetExceededEvent dailyBudgetEvent = BudgetExceededEvent.builder()
+                .budgetType(BudgetExceededEvent.BudgetType.CATEGORY)
+                .expense(expense)
+                .category(foodCategory)
+                .userId(employee.getId())
+                .currentTotal(BigDecimal.valueOf(60))
+                .newTotal(BigDecimal.valueOf(110))
+                .budgetLimit(BigDecimal.valueOf(100))
+                .date(LocalDate.now())
+                .build();
+
+        BudgetExceededEvent monthlyBudgetEvent = BudgetExceededEvent.builder()
+                .budgetType(BudgetExceededEvent.BudgetType.CATEGORY)
+                .expense(expense)
+                .category(foodCategory)
+                .userId(employee.getId())
+                .currentTotal(BigDecimal.valueOf(2980))
+                .newTotal(BigDecimal.valueOf(3030))
+                .budgetLimit(BigDecimal.valueOf(3000))
+                .yearMonth(YearMonth.now())
+                .build();
+
+        // First event - no existing alerts
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
+                eq(expense), eq(AlertType.CATEGORY), eq(AlertStatus.NEW)))
+                .thenReturn(List.of());
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
+                eq(expense), eq(AlertType.ALL), eq(AlertStatus.NEW)))
+                .thenReturn(List.of());
+
+        // When - handle first event
+        eventListener.handleBudgetExceededEvent(dailyBudgetEvent);
+
+        // Then - verify first alert created
+        verify(alertRepository, times(1)).save(any(Alert.class));
+
+        // Given - Second event finds the first alert
+        Alert firstAlert = Alert.builder()
+                .id(1L)
+                .type(AlertType.CATEGORY)
+                .message("Daily budget exceeded for category 'Food' on 2026-01-08. Current total: 60, New total: 110, Budget limit: 100")
+                .status(AlertStatus.NEW)
+                .expense(expense)
+                .build();
+
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
+                eq(expense), eq(AlertType.CATEGORY), eq(AlertStatus.NEW)))
+                .thenReturn(List.of(firstAlert));
+        when(alertRepository.findAllByExpenseAndTypeAndStatus(
+                eq(expense), eq(AlertType.ALL), eq(AlertStatus.NEW)))
+                .thenReturn(List.of());
+
+        // When - handle second event
+        eventListener.handleBudgetExceededEvent(monthlyBudgetEvent);
+
+        // Then - verify alert was updated (2 saves total: 1 create + 1 update)
+        verify(alertRepository, times(2)).save(alertCaptor.capture());
+        List<Alert> savedAlerts = alertCaptor.getAllValues();
+        Alert updatedAlert = savedAlerts.get(1);
+        
+        assertEquals(firstAlert.getId(), updatedAlert.getId());
+        assertEquals(AlertType.CATEGORY, updatedAlert.getType()); // Still CATEGORY, not DEPARTMENT
+        assertTrue(updatedAlert.getMessage().contains("Daily budget exceeded"));
+        assertTrue(updatedAlert.getMessage().contains("Monthly budget exceeded"));
     }
 
     // We can't directly test the private createAlertMessage method,
