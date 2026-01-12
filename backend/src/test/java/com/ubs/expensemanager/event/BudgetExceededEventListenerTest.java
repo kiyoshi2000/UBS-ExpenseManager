@@ -183,6 +183,9 @@ class BudgetExceededEventListenerTest {
         assertEquals(AlertType.ALL, savedAlert.getType());
         assertEquals(expense, savedAlert.getExpense());
         assertEquals(AlertStatus.NEW, savedAlert.getStatus());
+        // Verify that the message was updated to include department information
+        assertTrue(savedAlert.getMessage().contains("Daily budget exceeded for category 'Food'"));
+        assertTrue(savedAlert.getMessage().contains("Daily budget exceeded for department"));
     }
 
     // We can't directly test the private createAlertMessage method,

@@ -49,8 +49,11 @@ public class BudgetExceededEventListener {
                 // Update existing alert instead of creating a new one
                 Alert alert = existingAlert.get();
                 alert.setType(AlertType.ALL);
+                // Update message to include department information
+                String combinedMessage = alert.getMessage() + "; " + message;
+                alert.setMessage(combinedMessage);
                 alertRepository.save(alert);
-                log.info("Updated existing alert to ALL type: {}", alert);
+                log.info("Updated existing alert to ALL type with combined message: {}", alert);
                 return;
             }
         }
@@ -91,11 +94,23 @@ public class BudgetExceededEventListener {
             formattedTime = "unknown date";
         }
 
+        // Determine the scope (category or department) and the appropriate name
+        String scope;
+        String scopeName;
+        if (event.getBudgetType() == BudgetExceededEvent.BudgetType.DEPARTAMENT) {
+            scope = "department";
+            scopeName = event.getExpense().getUser().getDepartment().getName();
+        } else {
+            scope = "category";
+            scopeName = event.getCategory().getName();
+        }
+
         return String.format(
-                "%s budget exceeded for category '%s' on %s. " +
+                "%s budget exceeded for %s '%s' on %s. " +
                 "Current total: %s, New total: %s, Budget limit: %s",
                 timeFrame,
-                event.getCategory().getName(),
+                scope,
+                scopeName,
                 formattedTime,
                 event.getCurrentTotal(),
                 event.getNewTotal(),
