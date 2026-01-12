@@ -76,21 +76,19 @@ public class BudgetExceededEventListener {
         String timeFrame;
         String formattedTime;
 
-        if (event.getBudgetType() == BudgetExceededEvent.BudgetType.DEPARTAMENT) {
+        // Determine if this is a daily or monthly budget based on which field is populated
+        if (event.getYearMonth() != null) {
+            // Monthly budget exceeded
+            timeFrame = "Monthly";
+            formattedTime = event.getYearMonth().format(MONTH_FORMATTER);
+        } else if (event.getDate() != null) {
+            // Daily budget exceeded
             timeFrame = "Daily";
             formattedTime = event.getDate().format(DATE_FORMATTER);
         } else {
-            timeFrame = "Monthly";
-            // Handle case where yearMonth is null by using date as fallback
-            if (event.getYearMonth() != null) {
-                formattedTime = event.getYearMonth().format(MONTH_FORMATTER);
-            } else if (event.getDate() != null) {
-                // If yearMonth is null but date is available, use date
-                formattedTime = event.getDate().format(DATE_FORMATTER);
-            } else {
-                // If both yearMonth and date are null, use a default value
-                formattedTime = "unknown date";
-            }
+            // Fallback if both are null (shouldn't happen)
+            timeFrame = "Unknown";
+            formattedTime = "unknown date";
         }
 
         return String.format(
