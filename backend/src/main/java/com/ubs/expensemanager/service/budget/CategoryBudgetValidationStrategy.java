@@ -36,7 +36,7 @@ public class CategoryBudgetValidationStrategy implements BudgetValidationStrateg
      */
     private void validateDailyBudget(Long userId, ExpenseCategory category, Expense expense, BigDecimal newAmount) {
         BigDecimal dailyTotal = Optional.ofNullable(
-                expenseRepository.sumAmountByUserAndCategoryAndDate(userId, category.getId(), expense.getExpenseDate())
+                expenseRepository.sumAmountByUserAndCategoryAndDate(userId, category.getId(), expense.getExpenseDate(), expense.getId())
         ).orElse(BigDecimal.ZERO);
         BigDecimal newDailyTotal = dailyTotal.add(newAmount);
 
@@ -69,7 +69,7 @@ public class CategoryBudgetValidationStrategy implements BudgetValidationStrateg
         LocalDate monthEnd = yearMonth.atEndOfMonth();
 
         BigDecimal monthlyTotal = Optional.ofNullable(
-                expenseRepository.sumAmountByUserAndCategoryAndDateRange(userId, category.getId(), monthStart, monthEnd)
+                expenseRepository.sumAmountByUserAndCategoryAndDateRange(userId, category.getId(), monthStart, monthEnd, expense.getId())
         ).orElse(BigDecimal.ZERO);
 
         BigDecimal newMonthlyTotal = monthlyTotal.add(newAmount);
