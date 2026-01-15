@@ -17,10 +17,15 @@ export const api = axios.create({
   /**
    * Base URL of the backend API.
    *
-   * - Uses BACKEND_ENDPOINT if defined in environment variables
-   * - Falls back to localhost for local development
+   * - In development: Uses BACKEND_ENDPOINT env var or localhost
+   * - In production: Uses relative path (proxied through Vercel rewrites)
+   *
+   * This avoids cross-site cookie issues in Chrome/Safari by making
+   * API calls same-origin in production.
    */
-  baseURL: import.meta.env.BACKEND_ENDPOINT ?? "http://localhost:8080",
+  baseURL: import.meta.env.DEV
+    ? (import.meta.env.BACKEND_ENDPOINT ?? "http://localhost:8080")
+    : "",
 
   /**
    * Enable sending cookies with cross-origin requests.
