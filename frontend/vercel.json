@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "$BACKEND_URL/api/:path*"
+      "destination": "https://ubs-expensemanager.onrender.com/api/:path*"
     }
   ]
 }
