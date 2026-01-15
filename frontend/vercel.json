@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://ubs-expensemanager.onrender.com/api/:path*"
+    },
+    {
+      "source": "/((?!assets/).*)",
+      "destination": "/index.html"
     }
   ]
 }
