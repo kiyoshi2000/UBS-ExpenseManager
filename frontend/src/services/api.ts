@@ -23,9 +23,7 @@ export const api = axios.create({
    * This avoids cross-site cookie issues in Chrome/Safari by making
    * API calls same-origin in production.
    */
-  baseURL: import.meta.env.DEV
-    ? (import.meta.env.BACKEND_ENDPOINT ?? "http://localhost:8080")
-    : "",
+  baseURL: import.meta.env.BACKEND_ENDPOINT ?? "",
 
   /**
    * Enable sending cookies with cross-origin requests.

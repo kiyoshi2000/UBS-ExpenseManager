@@ -1,6 +1,9 @@
 FROM node:20
 WORKDIR /app
 
+ARG BACKEND_ENDPOINT
+ENV BACKEND_ENDPOINT=$BACKEND_ENDPOINT
+
 COPY package.json package-lock.json ./
 RUN npm install
 
